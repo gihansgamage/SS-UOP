@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -44,7 +45,7 @@ public class ApprovalService {
             case DEAN:
                 List<SocietyRegistration> deanRegistrations = registrationRepository
                         .findByStatusAndApplicantFaculty(
-                                SocietyRegistration.RegistrationStatus.PENDING_DEAN, 
+                                SocietyRegistration.RegistrationStatus.PENDING_DEAN,
                                 admin.getFaculty());
                 pendingApprovals.put("registrations", deanRegistrations);
                 break;
@@ -101,10 +102,10 @@ public class ApprovalService {
                     registration.setIsVcApproved(true);
                     registration.setStatus(SocietyRegistration.RegistrationStatus.APPROVED);
                     registration.setApprovedDate(LocalDateTime.now());
-                    
+
                     // Create final society record
                     createFinalSociety(registration);
-                    
+
                     // Send congratulations emails
                     emailService.sendApprovalNotification(registration);
                 }
@@ -114,7 +115,7 @@ public class ApprovalService {
         registration = registrationRepository.save(registration);
 
         // Log activity
-        activityLogService.logActivity("Registration Approved", 
+        activityLogService.logActivity("Registration Approved",
                 registration.getSocietyName(), admin.getName());
 
         return registration;
@@ -135,7 +136,7 @@ public class ApprovalService {
         emailService.sendRejectionNotification(registration);
 
         // Log activity
-        activityLogService.logActivity("Registration Rejected", 
+        activityLogService.logActivity("Registration Rejected",
                 registration.getSocietyName(), admin.getName());
 
         return registration;
@@ -171,7 +172,7 @@ public class ApprovalService {
         event = eventPermissionRepository.save(event);
 
         // Log activity
-        activityLogService.logActivity("Event Permission Approved", 
+        activityLogService.logActivity("Event Permission Approved",
                 event.getEventName(), admin.getName());
 
         return event;
@@ -183,9 +184,9 @@ public class ApprovalService {
         society.setRegisteredDate(LocalDate.now());
         society.setStatus(Society.SocietyStatus.ACTIVE);
         society.setYear(registration.getYear());
-        
+
         societyRepository.save(society);
-        
+
         // Create society officials records
         // Implementation details...
     }

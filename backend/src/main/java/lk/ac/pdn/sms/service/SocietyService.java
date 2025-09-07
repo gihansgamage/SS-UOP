@@ -4,6 +4,7 @@ import lk.ac.pdn.sms.dto.SocietyRegistrationDto;
 import lk.ac.pdn.sms.dto.SocietyRenewalDto;
 import lk.ac.pdn.sms.entity.Society;
 import lk.ac.pdn.sms.entity.SocietyRegistration;
+import lk.ac.pdn.sms.entity.SocietyRenewal;
 import lk.ac.pdn.sms.repository.SocietyRepository;
 import lk.ac.pdn.sms.repository.SocietyRegistrationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,7 +65,7 @@ public class SocietyService {
         emailService.notifyStudentService("New Society Registration", registration.getSocietyName());
 
         // Log activity
-        activityLogService.logActivity("Society Registration Submitted", 
+        activityLogService.logActivity("Society Registration Submitted",
                 registration.getSocietyName(), registration.getApplicantFullName());
 
         return registration;
@@ -73,24 +74,16 @@ public class SocietyService {
     public SocietyRegistration renewSociety(SocietyRenewalDto dto) {
         // Verify society exists and is active
         Society existingSociety = societyRepository.findBySocietyNameAndStatus(
-                dto.getSocietyName(), Society.SocietyStatus.ACTIVE)
+                        dto.getSocietyName(), Society.SocietyStatus.ACTIVE)
                 .orElseThrow(() -> new RuntimeException("Active society not found"));
 
-        SocietyRegistration renewal = convertRenewalToEntity(dto);
-        renewal = registrationRepository.save(renewal);
+        // Convert DTO to SocietyRenewal entity (not SocietyRegistration)
+        SocietyRenewal renewal = convertRenewalToEntity(dto);
 
-        // Send confirmation email
-        emailService.sendRenewalConfirmation(renewal);
-
-        // Notify respective dean
-        emailService.notifyDeanForApproval(renewal);
-
-        // Log activity
-        activityLogService.logActivity("Society Renewal Submitted", 
-                renewal.getSocietyName(), renewal.getApplicantFullName());
-
-        return renewal;
+        // This method should delegate to RenewalService
+        throw new RuntimeException("Use RenewalService.submitRenewal() for society renewals");
     }
+
 
     public List<Society> getActiveSocieties() {
         return societyRepository.findByStatus(Society.SocietyStatus.ACTIVE);
@@ -120,10 +113,20 @@ public class SocietyService {
         return registration;
     }
 
-    private SocietyRegistration convertRenewalToEntity(SocietyRenewalDto dto) {
-        // Similar conversion for renewal
-        SocietyRegistration renewal = new SocietyRegistration();
-        // Map fields...
+    private SocietyRenewal convertRenewalToEntity(SocietyRenewalDto dto) {
+        // Convert DTO to SocietyRenewal entity
+        SocietyRenewal renewal = new SocietyRenewal();
+        renewal.setApplicantFullName(dto.getApplicantFullName());
+        renewal.setApplicantRegNo(dto.getApplicantRegNo());
+        renewal.setApplicantEmail(dto.getApplicantEmail());
+        renewal.setApplicantFaculty(dto.getApplicantFaculty());
+        renewal.setApplicantMobile(dto.getApplicantMobile());
+        renewal.setSocietyName(dto.getSocietyName());
+        renewal.setBankAccount(dto.getBankAccount());
+        renewal.setBankName(dto.getBankName());
+        renewal.setAgmDate(dto.getAgmDate());
+        renewal.setDifficulties(dto.getDifficulties());
+        renewal.setWebsite(dto.getWebsite());
         return renewal;
     }
 }
