@@ -29,11 +29,11 @@ const Header: React.FC = () => {
           <div className="flex items-center space-x-4">
             <Link to="/" className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">UOP</span>
+                <span className="text-white font-bold text-lg">SMS</span>
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">SMS-UOP</h1>
-                <p className="text-xs text-gray-600">Society Management System</p>
+                <h1 className="text-xl font-bold text-gray-900">Society Management System</h1>
+                <p className="text-xs text-gray-600">University Of Peradeniya</p>
               </div>
             </Link>
           </div>
@@ -54,6 +54,9 @@ const Header: React.FC = () => {
             </form>
 
             <nav className="flex items-center space-x-6">
+              <Link to="/" className="text-gray-700 hover:text-blue-600 transition-colors">
+                Home
+              </Link>
               <Link to="/register" className="text-gray-700 hover:text-blue-600 transition-colors">
                 Register
               </Link>

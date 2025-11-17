@@ -67,10 +67,10 @@ const HomePage: React.FC = () => {
         {/* Core Functions */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Core Functions</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Everything you need to manage your society's lifecycle and activities
-            </p>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4"> Everything you need to manage your society's lifecycle and activities</h2>
+            {/*<p className="text-gray-600 max-w-2xl mx-auto">*/}
+            {/*  Everything you need to manage your society's lifecycle and activities*/}
+            {/*</p>*/}
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
