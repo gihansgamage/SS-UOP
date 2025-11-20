@@ -5,11 +5,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
-/**
- * Entity representing an event permission request application.
- * Approval is a single step (Assistant Registrar).
- */
 @Entity
 @Table(name = "event_permissions")
 @Data
@@ -17,71 +15,93 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class EventPermission {
 
-    // 1. Primary Key
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 2. Applicant Details (Initial Login Data)
     @Column(nullable = false)
-    private String applicantFullName;
+    private String societyName;
+
+    @Column(nullable = false)
+    private String applicantName;
 
     @Column(nullable = false)
     private String applicantRegNo;
 
     @Column(nullable = false)
-    private String applicantEmail; // Used for notifications
+    private String applicantEmail;
 
     @Column(nullable = false)
-    private String applicantFaculty;
+    private String applicantPosition;
 
     @Column(nullable = false)
     private String applicantMobile;
-
-    // 3. Event and Society Details
-    @Column(nullable = false)
-    private String societyName; // The society requesting permission
 
     @Column(nullable = false)
     private String eventName;
 
     @Column(nullable = false)
-    private String eventDate; // Using String for date/time flexibility from form
+    private LocalDate eventDate;
+
+    @Column(name = "time_from")
+    private LocalTime timeFrom;
+
+    @Column(name = "time_to")
+    private LocalTime timeTo;
 
     @Column(nullable = false)
-    private String eventVenue;
+    private String place;
+
+    private Boolean isInsideUniversity;
+    private Boolean latePassRequired;
+    private Boolean outsidersInvited;
 
     @Column(columnDefinition = "TEXT")
-    private String eventDescription;
+    private String outsidersList;
 
-    private Integer expectedParticipants;
+    private Boolean firstYearParticipation;
 
-    // Placeholder for file storage reference (e.g., budget, proposal)
-    private String attachedFilesPath;
+    private String budgetEstimate;
+    private String fundCollectionMethods;
+    private String studentFeeAmount;
 
-    // 4. Approval Flow Fields (CRITICAL: One-step AR approval)
+    private String seniorTreasurerName;
+    private String seniorTreasurerDepartment;
+    private String seniorTreasurerMobile;
+
+    private String premisesOfficerName;
+    private String premisesOfficerDesignation;
+    private String premisesOfficerDivision;
+
+    private String receiptNumber;
+    private LocalDate paymentDate;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private EventStatus status = EventStatus.PENDING_AR; // Initial status is PENDING_AR
+    private EventStatus status = EventStatus.PENDING_AR;
 
     @Column(columnDefinition = "TEXT")
     private String rejectionReason;
 
-    @Column(name = "ar_approval_date")
     private LocalDateTime arApprovalDate;
+    private LocalDateTime vcApprovalDate;
 
-    // 5. Timestamps
+    @Column(name = "submitted_date")
+    private LocalDateTime submittedDate;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    // 6. Lifecycle Methods
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
+        if (submittedDate == null) {
+            submittedDate = LocalDateTime.now();
+        }
     }
 
     @PreUpdate
@@ -89,9 +109,9 @@ public class EventPermission {
         updatedAt = LocalDateTime.now();
     }
 
-    // 7. Event Status Enum (One-step approval process)
     public enum EventStatus {
-        PENDING_AR, // Pending Assistant Registrar approval (AR and SS view)
+        PENDING_AR,
+        PENDING_VC,
         APPROVED,
         REJECTED
     }

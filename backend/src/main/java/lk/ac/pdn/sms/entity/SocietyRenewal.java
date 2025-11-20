@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import lk.ac.pdn.sms.entity.SocietyRegistration.ApprovalStage;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
 import java.util.List;
@@ -39,7 +38,7 @@ public class SocietyRenewal {
     private String societyName;
 
     @Column(nullable = false)
-    private Integer renewalYear = LocalDateTime.now().getYear();
+    private Integer renewalYear = LocalDate.now().getYear();
 
     @Column(columnDefinition = "TEXT")
     private String website;
@@ -126,7 +125,7 @@ public class SocietyRenewal {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ApprovalStage status = ApprovalStage.PENDING_DEAN;
+    private RenewalStatus status = RenewalStatus.PENDING_DEAN;
 
     @Column(name = "is_dean_approved")
     private Boolean isDeanApproved = false;
@@ -175,5 +174,13 @@ public class SocietyRenewal {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    public enum RenewalStatus {
+        PENDING_DEAN,
+        PENDING_AR,
+        PENDING_VC,
+        APPROVED,
+        REJECTED
     }
 }

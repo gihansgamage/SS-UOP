@@ -12,7 +12,11 @@ public class ApprovalDto {
     @NotNull(message = "Action is required")
     private ApprovalAction action;
 
-    private String rejectionReason; // Only required if action is REJECT
+    private String rejectionReason;
+
+    public String getReason() {
+        return rejectionReason;
+    }
 
     public enum ApprovalAction {
         APPROVE, REJECT

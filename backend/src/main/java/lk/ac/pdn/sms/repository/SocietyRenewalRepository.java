@@ -1,7 +1,7 @@
 package lk.ac.pdn.sms.repository;
 
 import lk.ac.pdn.sms.entity.SocietyRenewal;
-import lk.ac.pdn.sms.entity.SocietyRegistration.ApprovalStage; // FIX: Import the enum from its DEFINITION class
+import lk.ac.pdn.sms.entity.SocietyRenewal.RenewalStatus; // Corrected Import
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,11 +14,10 @@ import java.util.List;
 @Repository
 public interface SocietyRenewalRepository extends JpaRepository<SocietyRenewal, Long> {
 
-    // FIX: Use the imported simple name ApprovalStage
-    List<SocietyRenewal> findByStatus(ApprovalStage status);
+    List<SocietyRenewal> findByStatus(RenewalStatus status);
 
     List<SocietyRenewal> findByStatusAndApplicantFaculty(
-            ApprovalStage status, String faculty);
+            RenewalStatus status, String faculty);
 
     Page<SocietyRenewal> findByYear(Integer year, Pageable pageable);
 
@@ -26,7 +25,7 @@ public interface SocietyRenewalRepository extends JpaRepository<SocietyRenewal, 
     long countByYear(@Param("year") Integer year);
 
     @Query("SELECT COUNT(r) FROM SocietyRenewal r WHERE r.status = :status")
-    long countByStatus(@Param("status") ApprovalStage status); // FIX: Use ApprovalStage
+    long countByStatus(@Param("status") RenewalStatus status);
 
     boolean existsBySocietyNameAndYear(String societyName, Integer year);
 
