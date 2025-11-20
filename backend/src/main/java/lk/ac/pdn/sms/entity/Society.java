@@ -19,7 +19,7 @@ public class Society {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "society_name", nullable = false)
+    @Column(name = "society_name", nullable = false, unique = true)
     private String societyName;
 
     @Column(name = "registered_date", nullable = false)
@@ -30,9 +30,33 @@ public class Society {
     private SocietyStatus status = SocietyStatus.ACTIVE;
 
     @Column(nullable = false)
-    private Integer year;
+    private Integer year; // Represents the last renewed/registered year
 
+    // START FIX: Added critical fields for data migration/renewal
+    @Column(columnDefinition = "TEXT")
+    private String aims;
+
+    private String agmDate; // Stored as string for flexibility from form
+
+    private String bankAccount;
+    private String bankName;
     private String website;
+
+    @Column(name = "primary_faculty")
+    private String primaryFaculty; // Used for Dean filtering
+
+    @Column(name = "last_renewal_year")
+    private Integer lastRenewalYear;
+
+    // Senior Treasurer Details (Flattened fields for migration)
+    private String seniorTreasurerTitle;
+    private String seniorTreasurerFullName;
+    private String seniorTreasurerDesignation;
+    private String seniorTreasurerDepartment;
+    private String seniorTreasurerEmail;
+    private String seniorTreasurerAddress;
+    private String seniorTreasurerMobile;
+    // END FIX
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -47,6 +71,11 @@ public class Society {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
+        registeredDate = LocalDate.now();
+        // The 'year' field is often populated from the registration application's year
+        if (this.year == null) {
+            this.year = LocalDate.now().getYear();
+        }
     }
 
     @PreUpdate

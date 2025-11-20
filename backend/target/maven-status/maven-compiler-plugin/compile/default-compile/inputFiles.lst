@@ -12,6 +12,7 @@
 /Users/gihansanjaya/Applications/SS-UOP/backend/src/main/java/lk/ac/pdn/sms/dto/ApprovalDto.java
 /Users/gihansanjaya/Applications/SS-UOP/backend/src/main/java/lk/ac/pdn/sms/service/PDFService.java
 /Users/gihansanjaya/Applications/SS-UOP/backend/src/main/java/lk/ac/pdn/sms/entity/RenewalPlanningEvent.java
+/Users/gihansanjaya/Applications/SS-UOP/backend/src/main/java/lk/ac/pdn/sms/service/CustomOAuth2UserService.java
 /Users/gihansanjaya/Applications/SS-UOP/backend/src/main/java/lk/ac/pdn/sms/repository/EventPermissionRepository.java
 /Users/gihansanjaya/Applications/SS-UOP/backend/src/main/java/lk/ac/pdn/sms/entity/SocietyRegistration.java
 /Users/gihansanjaya/Applications/SS-UOP/backend/src/main/java/lk/ac/pdn/sms/service/EmailService.java
@@ -34,8 +35,10 @@
 /Users/gihansanjaya/Applications/SS-UOP/backend/src/main/java/lk/ac/pdn/sms/repository/AdminUserRepository.java
 /Users/gihansanjaya/Applications/SS-UOP/backend/src/main/java/lk/ac/pdn/sms/entity/SocietyRenewal.java
 /Users/gihansanjaya/Applications/SS-UOP/backend/src/main/java/lk/ac/pdn/sms/controller/RenewalController.java
+/Users/gihansanjaya/Applications/SS-UOP/backend/src/main/java/lk/ac/pdn/sms/dto/AdminUserManagementDto.java
 /Users/gihansanjaya/Applications/SS-UOP/backend/src/main/java/lk/ac/pdn/sms/entity/RenewalSocietyMember.java
 /Users/gihansanjaya/Applications/SS-UOP/backend/src/main/java/lk/ac/pdn/sms/controller/AdminController.java
+/Users/gihansanjaya/Applications/SS-UOP/backend/src/main/java/lk/ac/pdn/sms/exception/ResourceNotFoundException.java
 /Users/gihansanjaya/Applications/SS-UOP/backend/src/main/java/lk/ac/pdn/sms/repository/SocietyRenewalRepository.java
 /Users/gihansanjaya/Applications/SS-UOP/backend/src/main/java/lk/ac/pdn/sms/controller/SocietyController.java
 /Users/gihansanjaya/Applications/SS-UOP/backend/src/main/java/lk/ac/pdn/sms/dto/SocietyRegistrationDto.java

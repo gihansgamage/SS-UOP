@@ -41,38 +41,41 @@ public class AdminService {
                 .orElseThrow(() -> new RuntimeException("Admin user not found"));
 
         Map<String, Object> dashboardData = new HashMap<>();
-        
+
         // Basic statistics
         dashboardData.put("totalSocieties", societyRepository.count());
         dashboardData.put("activeSocieties", societyRepository.countByStatus(Society.SocietyStatus.ACTIVE));
         dashboardData.put("currentYearRegistrations", registrationRepository.countByYear(LocalDate.now().getYear()));
         dashboardData.put("currentYearRenewals", renewalRepository.countByYear(LocalDate.now().getYear()));
-        
+
         // Pending items based on role
         int pendingCount = 0;
         switch (admin.getRole()) {
             case DEAN:
+                // FIX: Use fully qualified enum name SocietyRegistration.ApprovalStage for both
                 pendingCount += registrationRepository.findByStatusAndApplicantFaculty(
-                        SocietyRegistration.RegistrationStatus.PENDING_DEAN, admin.getFaculty()).size();
+                        SocietyRegistration.ApprovalStage.PENDING_DEAN, admin.getFaculty()).size();
                 pendingCount += renewalRepository.findByStatusAndApplicantFaculty(
-                        SocietyRenewal.RenewalStatus.PENDING_DEAN, admin.getFaculty()).size();
+                        SocietyRegistration.ApprovalStage.PENDING_DEAN, admin.getFaculty()).size();
                 break;
             case ASSISTANT_REGISTRAR:
-                pendingCount += registrationRepository.findByStatus(SocietyRegistration.RegistrationStatus.PENDING_AR).size();
-                pendingCount += renewalRepository.findByStatus(SocietyRenewal.RenewalStatus.PENDING_AR).size();
+                // FIX: Use fully qualified enum name SocietyRegistration.ApprovalStage for both
+                pendingCount += registrationRepository.findByStatus(SocietyRegistration.ApprovalStage.PENDING_AR).size();
+                pendingCount += renewalRepository.findByStatus(SocietyRegistration.ApprovalStage.PENDING_AR).size();
                 pendingCount += eventPermissionRepository.findByStatus(EventPermission.EventStatus.PENDING_AR).size();
                 break;
             case VICE_CHANCELLOR:
-                pendingCount += registrationRepository.findByStatus(SocietyRegistration.RegistrationStatus.PENDING_VC).size();
-                pendingCount += renewalRepository.findByStatus(SocietyRenewal.RenewalStatus.PENDING_VC).size();
+                // FIX: Use fully qualified enum name SocietyRegistration.ApprovalStage for both
+                pendingCount += registrationRepository.findByStatus(SocietyRegistration.ApprovalStage.PENDING_VC).size();
+                pendingCount += renewalRepository.findByStatus(SocietyRegistration.ApprovalStage.PENDING_VC).size();
                 pendingCount += eventPermissionRepository.findByStatus(EventPermission.EventStatus.PENDING_VC).size();
                 break;
         }
-        
+
         dashboardData.put("pendingApprovals", pendingCount);
         dashboardData.put("upcomingEvents", eventPermissionRepository.findUpcomingApprovedEvents());
         dashboardData.put("adminInfo", admin);
-        
+
         return dashboardData;
     }
 

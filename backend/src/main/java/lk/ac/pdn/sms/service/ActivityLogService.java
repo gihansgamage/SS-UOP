@@ -9,6 +9,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class ActivityLogService {
 
@@ -19,16 +21,34 @@ public class ActivityLogService {
     private AdminUserRepository adminUserRepository;
 
     public void logActivity(String action, String target, String userName) {
-        // Try to find admin user by name, otherwise create a generic log
         AdminUser user = adminUserRepository.findByEmail(userName + "@pdn.ac.lk").orElse(null);
-        
+
         ActivityLog log = new ActivityLog();
         log.setUserId(user != null ? user.getId() : 0L);
         log.setUserName(userName);
         log.setAction(action);
         log.setTarget(target);
-        
+
         activityLogRepository.save(log);
+    }
+
+    public void logActivity(String action, String target, String adminId, String userName) {
+        ActivityLog log = new ActivityLog();
+        try {
+            log.setUserId(Long.valueOf(adminId));
+        } catch (NumberFormatException e) {
+            log.setUserId(0L);
+        }
+
+        log.setUserName(userName);
+        log.setAction(action);
+        log.setTarget(target);
+
+        activityLogRepository.save(log);
+    }
+
+    public List<ActivityLog> getAllLogs() {
+        return activityLogRepository.findAll();
     }
 
     public Page<ActivityLog> getActivityLogs(String userFilter, String actionFilter, Pageable pageable) {
@@ -39,7 +59,7 @@ public class ActivityLogService {
         } else if (actionFilter != null && !actionFilter.isEmpty()) {
             return activityLogRepository.findByActionContaining(actionFilter, pageable);
         }
-        
+
         return activityLogRepository.findAll(pageable);
     }
 }

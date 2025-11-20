@@ -1,6 +1,7 @@
 package lk.ac.pdn.sms.repository;
 
 import lk.ac.pdn.sms.entity.SocietyRegistration;
+// Removed incorrect import, relying on fully qualified name
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,17 +13,18 @@ import java.util.List;
 
 @Repository
 public interface SocietyRegistrationRepository extends JpaRepository<SocietyRegistration, Long> {
-    
-    List<SocietyRegistration> findByStatus(SocietyRegistration.RegistrationStatus status);
-    
+
+    // FIX: Use fully qualified enum name SocietyRegistration.ApprovalStage
+    List<SocietyRegistration> findByStatus(SocietyRegistration.ApprovalStage status);
+
     List<SocietyRegistration> findByStatusAndApplicantFaculty(
-            SocietyRegistration.RegistrationStatus status, String faculty);
-    
+            SocietyRegistration.ApprovalStage status, String faculty);
+
     Page<SocietyRegistration> findByYear(Integer year, Pageable pageable);
-    
+
     @Query("SELECT COUNT(r) FROM SocietyRegistration r WHERE r.year = :year")
     long countByYear(@Param("year") Integer year);
-    
+
     @Query("SELECT COUNT(r) FROM SocietyRegistration r WHERE r.status = :status")
-    long countByStatus(@Param("status") SocietyRegistration.RegistrationStatus status);
+    long countByStatus(@Param("status") SocietyRegistration.ApprovalStage status);
 }
