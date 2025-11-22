@@ -1,16 +1,16 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User } from '../types';
-
+import apiService from '../services/api';
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<void>;
-  loginWithGoogle: () => Promise<void>;
-  logout: () => void;
+  loginWithGoogle: () => void;
+  logout: () => Promise<void>;
   isAuthenticated: boolean;
   isAdmin: boolean;
   loading: boolean;
   error: string | null;
+  checkAuthStatus: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -28,86 +28,65 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Check for existing authentication on app load
-  useEffect(() => {
-    const token = localStorage.getItem('auth_token');
-    const savedUser = localStorage.getItem('auth_user');
-
-    if (token && savedUser) {
-      try {
-        setUser(JSON.parse(savedUser));
-      } catch (err) {
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('auth_user');
+  // Function to check if the user is currently logged in via session cookie
+  const checkAuthStatus = async () => {
+    try {
+      // We don't set loading true here to avoid flickering on navigations
+      const response = await apiService.admin.getCurrentUser();
+      if (response.data && response.data.email) {
+        setUser(response.data);
+        setError(null);
       }
+    } catch (err) {
+      // If 401 or 403, user is not logged in
+      setUser(null);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
+  };
+
+  // Check authentication on app load
+  useEffect(() => {
+    checkAuthStatus();
   }, []);
 
-  const login = async (email: string, password: string) => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Call backend login endpoint
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Invalid credentials');
-      }
-
-      const data = await response.json();
-
-      localStorage.setItem('auth_token', data.token);
-      localStorage.setItem('auth_user', JSON.stringify(data.user));
-      setUser(data.user);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
+  const loginWithGoogle = () => {
+    setLoading(true);
+    setError(null);
+    // Redirect browser to backend OAuth endpoint
+    // The backend will redirect back to the frontend on success
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
+    window.location.href = `${backendUrl}/oauth2/authorization/google`;
   };
 
-  const loginWithGoogle = async () => {
+  const logout = async () => {
     try {
-      setLoading(true);
-      setError(null);
-
-      // Redirect to Google OAuth
-      window.location.href = `${import.meta.env.VITE_BACKEND_URL}/oauth2/authorization/google`;
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
+      // We redirect to the logout endpoint which handles session invalidation
+      // and then redirects back to the home page
+      window.location.href = `${backendUrl}/api/auth/logout`;
+      setUser(null);
     } catch (err) {
-      setError('Google login failed');
-      throw err;
-    } finally {
-      setLoading(false);
+      console.error('Logout failed', err);
+      setUser(null);
     }
-  };
-
-  const logout = () => {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('auth_user');
-    setUser(null);
   };
 
   const isAuthenticated = !!user;
+  // Check if user has one of the admin roles
   const isAdmin = user?.role !== undefined &&
-      ['dean', 'assistant_registrar', 'vice_chancellor', 'student_service'].includes(user.role);
+      ['dean', 'assistant_registrar', 'vice_chancellor', 'student_service'].includes(user.role.toLowerCase());
 
   return (
       <AuthContext.Provider value={{
         user,
-        login,
         loginWithGoogle,
         logout,
         isAuthenticated,
         isAdmin,
         loading,
-        error
+        error,
+        checkAuthStatus
       }}>
         {children}
       </AuthContext.Provider>

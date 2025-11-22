@@ -2,45 +2,34 @@ import axios from 'axios';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
 
-// Create axios instance with default config
+// Create axios instance with credentials enabled for Session-based OAuth
 const apiClient = axios.create({
   baseURL: API_BASE,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true // CRITICAL: This allows cookies (JSESSIONID) to be sent/received
 });
 
-// Add request interceptor for authentication
-apiClient.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-// Add response interceptor for error handling
+// Response interceptor for error handling
 apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('auth_user');
-      window.location.href = '/admin/login';
+    (response) => response,
+    (error) => {
+      if (error.response?.status === 401) {
+        // If 401 Unauthorized, clear user state (handled in AuthContext usually)
+        // But do NOT auto-redirect here to avoid loops on the login page itself
+        console.warn('Unauthorized access - session may have expired');
+      }
+      return Promise.reject(error);
     }
-    return Promise.reject(error);
-  }
 );
 
 export const apiService = {
   // Society Management
   societies: {
     getAll: (params?: { page?: number; size?: number; search?: string; status?: string; year?: number }) =>
-      apiClient.get('/societies/public', { params }),
+        apiClient.get('/societies/public', { params }),
     getById: (id: string) => apiClient.get(`/societies/public/${id}`),
     getActive: () => apiClient.get('/societies/active'),
     getStatistics: () => apiClient.get('/societies/statistics'),
@@ -55,13 +44,13 @@ export const apiService = {
     getStatistics: () => apiClient.get('/renewals/statistics'),
     // Admin endpoints
     getPending: (params?: { faculty?: string; status?: string }) =>
-      apiClient.get('/renewals/admin/pending', { params }),
+        apiClient.get('/renewals/admin/pending', { params }),
     getAll: (params?: { page?: number; size?: number; year?: number; status?: string }) =>
-      apiClient.get('/renewals/admin/all', { params }),
+        apiClient.get('/renewals/admin/all', { params }),
     approve: (id: string, data: { comments?: string; reason?: string }) =>
-      apiClient.post(`/renewals/admin/approve/${id}`, data),
+        apiClient.post(`/renewals/admin/approve/${id}`, data),
     reject: (id: string, data: { reason: string }) =>
-      apiClient.post(`/renewals/admin/reject/${id}`, data),
+        apiClient.post(`/renewals/admin/reject/${id}`, data),
   },
 
   // Event Permissions
@@ -72,51 +61,56 @@ export const apiService = {
     // Admin endpoints
     getPending: () => apiClient.get('/events/admin/pending'),
     getAll: (params?: { page?: number; size?: number; status?: string }) =>
-      apiClient.get('/events/admin/all', { params }),
+        apiClient.get('/events/admin/all', { params }),
     approve: (id: string, data: { comments?: string }) =>
-      apiClient.post(`/events/admin/approve/${id}`, data),
+        apiClient.post(`/events/admin/approve/${id}`, data),
     reject: (id: string, data: { reason: string }) =>
-      apiClient.post(`/events/admin/reject/${id}`, data),
+        apiClient.post(`/events/admin/reject/${id}`, data),
   },
 
   // Admin Operations
   admin: {
+    getCurrentUser: () => apiClient.get('/admin/user-info'), // Fetch logged-in user
     getDashboard: () => apiClient.get('/admin/dashboard'),
     getPendingApprovals: () => apiClient.get('/admin/pending-approvals'),
     getActivityLogs: (params?: { user?: string; action?: string; page?: number; size?: number }) =>
-      apiClient.get('/admin/activity-logs', { params }),
+        apiClient.get('/admin/activity-logs', { params }),
     getSocieties: (params?: { year?: number; status?: string; page?: number; size?: number }) =>
-      apiClient.get('/admin/societies', { params }),
+        apiClient.get('/admin/societies', { params }),
     sendBulkEmail: (data: { subject: string; body: string; recipients: string[] }) =>
-      apiClient.post('/admin/send-email', data),
-    
+        apiClient.post('/admin/send-email', data),
+
     // Registration approvals
     approveRegistration: (id: string, data: { comments?: string }) =>
-      apiClient.post(`/admin/approve-registration/${id}`, data),
+        apiClient.post(`/admin/approve-registration/${id}`, data),
     rejectRegistration: (id: string, data: { reason: string }) =>
-      apiClient.post(`/admin/reject-registration/${id}`, data),
+        apiClient.post(`/admin/reject-registration/${id}`, data),
+
+    // User Management
+    addUser: (data: any) => apiClient.post('/admin/ar/manage-admin/add', data),
+    removeUser: (email: string) => apiClient.post(`/admin/ar/manage-admin/remove?email=${email}`),
   },
 
   // File Operations
   files: {
     downloadRegistrationPDF: (id: string) =>
-      apiClient.get(`/files/download/registration/${id}`, { responseType: 'blob' }),
+        apiClient.get(`/files/download/registration/${id}`, { responseType: 'blob' }),
     downloadEventPDF: (id: string) =>
-      apiClient.get(`/files/download/event/${id}`, { responseType: 'blob' }),
+        apiClient.get(`/files/download/event/${id}`, { responseType: 'blob' }),
     exportSocieties: () =>
-      apiClient.get('/files/export/societies', { responseType: 'blob' }),
+        apiClient.get('/files/export/societies', { responseType: 'blob' }),
   },
 
   // Validation
   validation: {
     validateEmail: (email: string, position: string) =>
-      apiClient.post('/validation/email', { email, position }),
+        apiClient.post('/validation/email', { email, position }),
     validateMobile: (mobile: string) =>
-      apiClient.post('/validation/mobile', { mobile }),
+        apiClient.post('/validation/mobile', { mobile }),
     validateRegistrationNumber: (regNo: string) =>
-      apiClient.post('/validation/registration-number', { regNo }),
+        apiClient.post('/validation/registration-number', { regNo }),
     validateBulkEmails: (emails: string[]) =>
-      apiClient.post('/validation/bulk-emails', { emails }),
+        apiClient.post('/validation/bulk-emails', { emails }),
   },
 };
 
