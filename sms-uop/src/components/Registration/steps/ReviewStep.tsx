@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { ArrowLeft, Download, Send, FileText, Eye } from 'lucide-react';
 import { SocietyRegistration } from '../../../types';
 import EmailValidationIndicator from '../../Common/EmailValidationIndicator';
