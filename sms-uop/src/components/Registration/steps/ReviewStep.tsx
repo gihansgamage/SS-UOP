@@ -1,3 +1,4 @@
+
 import React, {useState} from 'react';
 import { ArrowLeft, Download, Send, FileText, Eye } from 'lucide-react';
 import { SocietyRegistration } from '../../../types';
@@ -30,7 +31,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
   return (
     <div>
       <h2 className="text-2xl font-semibold text-gray-900 mb-6">Review Application</h2>
-      
+
       <div className="space-y-6">
         {/* Applicant Information */}
         <div className="bg-gray-50 rounded-lg p-6">
@@ -62,48 +63,48 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
             <div><strong>Title:</strong> {formData.seniorTreasurer?.title}</div>
             <div><strong>Department:</strong> {formData.seniorTreasurer?.department}</div>
             <div className="flex items-center space-x-2">
-              <strong>Email:</strong> 
+              <strong>Email:</strong>
               <span>{formData.seniorTreasurer?.email}</span>
-              <EmailValidationIndicator 
-                email={formData.seniorTreasurer?.email || ''} 
+              <EmailValidationIndicator
+                email={formData.seniorTreasurer?.email || ''}
                 position="senior_treasurer"
               />
             </div>
           </div>
         </div>
-        
+
         {/* Key Officials Email Validation */}
         <div className="bg-blue-50 rounded-lg p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Email Validation Status</h3>
           <div className="grid md:grid-cols-2 gap-4 text-sm">
             <div className="flex items-center justify-between">
               <span><strong>President:</strong> {formData.president?.name}</span>
-              <EmailValidationIndicator 
-                email={formData.president?.email || ''} 
+              <EmailValidationIndicator
+                email={formData.president?.email || ''}
                 position="president"
                 showDetails
               />
             </div>
             <div className="flex items-center justify-between">
               <span><strong>Secretary:</strong> {formData.secretary?.name}</span>
-              <EmailValidationIndicator 
-                email={formData.secretary?.email || ''} 
+              <EmailValidationIndicator
+                email={formData.secretary?.email || ''}
                 position="secretary"
                 showDetails
               />
             </div>
             <div className="flex items-center justify-between">
               <span><strong>Junior Treasurer:</strong> {formData.juniorTreasurer?.name}</span>
-              <EmailValidationIndicator 
-                email={formData.juniorTreasurer?.email || ''} 
+              <EmailValidationIndicator
+                email={formData.juniorTreasurer?.email || ''}
                 position="junior_treasurer"
                 showDetails
               />
             </div>
             <div className="flex items-center justify-between">
               <span><strong>Editor:</strong> {formData.editor?.name}</span>
-              <EmailValidationIndicator 
-                email={formData.editor?.email || ''} 
+              <EmailValidationIndicator
+                email={formData.editor?.email || ''}
                 position="editor"
                 showDetails
               />
@@ -316,7 +317,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
           <ArrowLeft className="w-4 h-4" />
           <span>Previous</span>
         </button>
-        
+
         <div className="flex space-x-4">
           <button
             onClick={() => setShowPreview(true)}
@@ -325,7 +326,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
             <Eye className="w-4 h-4" />
             <span>Preview Application</span>
           </button>
-          
+
           <button
             onClick={handleDownloadPDF}
             className="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition-colors flex items-center space-x-2"
@@ -333,7 +334,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
             <Download className="w-4 h-4" />
             <span>Download PDF</span>
           </button>
-          
+
           <button
             onClick={handleSubmit}
             className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"

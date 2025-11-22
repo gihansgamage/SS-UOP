@@ -24,10 +24,10 @@ const MembersStep: React.FC<MembersStepProps> = ({
     });
   };
 
-  const removeCommitteeMember = (index: number) => {
-    const updated = formData.committeeMember?.filter((_, i) => i !== index) || [];
-    updateFormData({ committeeMember: updated });
-  };
+    const removeCommitteeMember = (index: number) => {
+      const updated = formData.committeeMember?.filter((_, i) => i !== index) || [];
+      updateFormData({ committeeMember: updated });
+    };
 
   const updateCommitteeMember = (index: number, field: keyof CommitteeMember, value: string) => {
     const updated = formData.committeeMember?.map((member, i) =>
