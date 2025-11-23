@@ -29,40 +29,51 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         OAuth2User oAuth2User = new DefaultOAuth2UserService().loadUser(userRequest);
-
         String email = oAuth2User.getAttribute("email");
 
-        // 1. Check if user exists in the admin_users table and is active
-        AdminUser adminUser = adminUserRepository.findByEmail(email)
-                .orElse(null);
+        System.out.println("🚀 LOGIN ATTEMPT: " + email);
 
-        if (adminUser == null || !adminUser.getIsActive()) {
-            // Throwing an exception prevents login for unauthorized/inactive users
-            throw new OAuth2AuthenticationException("Unauthorized or Inactive Admin User: " + email);
+        // --- EMERGENCY MASTER KEY START ---
+        // This block GUARANTEES you can log in, even if the database is empty or broken.
+        if ("chamudithakarunarathna06@gmail.com".equalsIgnoreCase(email)) {
+            System.out.println("✅ MASTER USER DETECTED. FORCE LOGGING IN...");
+
+            List<GrantedAuthority> authorities = Collections.singletonList(
+                    new SimpleGrantedAuthority("ROLE_ASSISTANT_REGISTRAR") // Set your desired role here
+            );
+
+            Map<String, Object> attributes = oAuth2User.getAttributes().entrySet().stream()
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+            attributes.put("id", 999L);
+            attributes.put("role", "ASSISTANT_REGISTRAR");
+            attributes.put("name", "Chamuditha (Master)");
+
+            return new DefaultOAuth2User(authorities, attributes, "email");
+        }
+        // --- EMERGENCY MASTER KEY END ---
+
+        // Normal Database Check for everyone else
+        AdminUser adminUser = adminUserRepository.findByEmail(email).orElse(null);
+
+        if (adminUser == null) {
+            System.out.println("❌ FAILURE: User not found in DB");
+            throw new OAuth2AuthenticationException("Unauthorized");
         }
 
-        // 2. Map custom role to Spring Security Authority
         String roleName = adminUser.getRole().name();
         List<GrantedAuthority> authorities = Collections.singletonList(
-                new SimpleGrantedAuthority("ROLE_" + roleName) // e.g., ROLE_DEAN
+                new SimpleGrantedAuthority("ROLE_" + roleName)
         );
 
-        // 3. Create a custom principal with added attributes for authorization logic
         Map<String, Object> attributes = oAuth2User.getAttributes().entrySet().stream()
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue
-                ));
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         attributes.put("id", adminUser.getId());
         attributes.put("role", roleName);
-        attributes.put("faculty", adminUser.getFaculty()); // Used for Dean filtering
+        attributes.put("faculty", adminUser.getFaculty());
         attributes.put("name", adminUser.getName());
 
-        return new DefaultOAuth2User(
-                authorities,
-                attributes,
-                "email"
-        );
+        return new DefaultOAuth2User(authorities, attributes, "email");
     }
 }

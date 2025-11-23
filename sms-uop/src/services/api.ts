@@ -18,7 +18,6 @@ apiClient.interceptors.response.use(
     (error) => {
       if (error.response?.status === 401) {
         // If 401 Unauthorized, clear user state (handled in AuthContext usually)
-        // But do NOT auto-redirect here to avoid loops on the login page itself
         console.warn('Unauthorized access - session may have expired');
       }
       return Promise.reject(error);
@@ -73,6 +72,14 @@ export const apiService = {
     getCurrentUser: () => apiClient.get('/admin/user-info'), // Fetch logged-in user
     getDashboard: () => apiClient.get('/admin/dashboard'),
     getPendingApprovals: () => apiClient.get('/admin/pending-approvals'),
+
+    // --- THESE ARE THE MISSING FUNCTIONS ---
+    getDeanPending: () => apiClient.get('/admin/dean/pending-applications'),
+    getARPending: () => apiClient.get('/admin/ar/pending-applications'),
+    getVCPending: () => apiClient.get('/admin/vc/pending-applications'),
+    getSSMonitoring: () => apiClient.get('/admin/ss/monitoring-applications'),
+    // ---------------------------------------
+
     getActivityLogs: (params?: { user?: string; action?: string; page?: number; size?: number }) =>
         apiClient.get('/admin/activity-logs', { params }),
     getSocieties: (params?: { year?: number; status?: string; page?: number; size?: number }) =>

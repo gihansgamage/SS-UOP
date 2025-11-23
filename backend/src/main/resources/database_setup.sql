@@ -329,7 +329,7 @@ CREATE TABLE IF NOT EXISTS event_permissions (
 -- ==========================================
 
 -- Clear existing admins to prevent duplicates if re-running
-TRUNCATE TABLE admin_users;
+# TRUNCATE TABLE admin_users;
 
 INSERT INTO admin_users (name, email, role, faculty) VALUES
                                                          ('Prof. John Silva', 'dean.medicine@pdn.ac.lk', 'dean', 'Faculty of Medicine'),
@@ -346,5 +346,5 @@ INSERT INTO admin_users (name, email, role, faculty) VALUES
                                                          ('Student Service Admin', 'studentservice@pdn.ac.lk', 'student_service', NULL);
 
 -- IMPORTANT: Add your own user here to login!
--- INSERT INTO admin_users (name, email, role, faculty)
--- VALUES ('Your Name', 'your.email@gmail.com', 'vice_chancellor', NULL);
+INSERT INTO admin_users (name, email, role, faculty, is_active)
+VALUES ('Chamuditha', 'chamudithakarunarathna06@gmail.com', 'assistant_registrar', NULL, TRUE);

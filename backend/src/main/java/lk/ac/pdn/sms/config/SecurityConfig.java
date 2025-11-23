@@ -63,7 +63,7 @@ public class SecurityConfig {
                         )
                         .successHandler(oauth2AuthenticationSuccessHandler())
                         .failureHandler((request, response, exception) -> {
-                            response.sendRedirect(frontendUrl + "/adminlogin?error=auth_failed");
+                            response.sendRedirect(frontendUrl + "/admin/login?error=auth_failed");
                         })
                 )
                 .logout(logout -> logout
