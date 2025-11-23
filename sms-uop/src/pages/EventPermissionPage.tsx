@@ -183,7 +183,7 @@ const EventPermissionPage: React.FC = () => {
                       label="Society Name"
                       name="societyName"
                       as="select"
-                      options={activeSocieties.map(s => s.societyName)}
+                      //options={activeSocieties.map(s => s.societyName)}
                       value={formData.societyName || ''}
                       onChange={handleChange}
                       error={errors.societyName}

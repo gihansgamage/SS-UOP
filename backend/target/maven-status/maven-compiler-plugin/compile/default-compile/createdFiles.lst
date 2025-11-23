@@ -1,5 +1,6 @@
 lk\ac\pdn\sms\entity\Society.class
 lk\ac\pdn\sms\repository\EventPermissionRepository.class
+lk\ac\pdn\sms\service\EventPermissionService.class
 lk\ac\pdn\sms\dto\EventPermissionDto.class
 lk\ac\pdn\sms\entity\RenewalAdvisoryBoardMember.class
 lk\ac\pdn\sms\exception\ResourceNotFoundException.class
@@ -44,6 +45,7 @@ lk\ac\pdn\sms\service\EmailService.class
 lk\ac\pdn\sms\service\RenewalService$1.class
 lk\ac\pdn\sms\dto\ApprovalDto.class
 lk\ac\pdn\sms\dto\SocietyRenewalDto.class
+lk\ac\pdn\sms\controller\EventPermissionController.class
 lk\ac\pdn\sms\dto\ApprovalDto$ApprovalAction.class
 lk\ac\pdn\sms\entity\RenewalSocietyMember.class
 lk\ac\pdn\sms\dto\SocietyRenewalDto$AdvisoryBoardMemberDto.class

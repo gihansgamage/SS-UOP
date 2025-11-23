@@ -1,6 +1,11 @@
 server:
   port: 8080
-
+  servlet:
+    session:
+      cookie:
+        same-site: lax  # Allows cookies between 5173 and 8080
+        secure: false   # Required because you are using http://, not https://
+        http-only: true
 spring:
   datasource:
     url: jdbc:mysql://localhost:3307/sms_uop?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true

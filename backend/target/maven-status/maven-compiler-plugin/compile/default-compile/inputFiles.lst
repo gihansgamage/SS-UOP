@@ -1,7 +1,9 @@
 C:\Users\GMCha\Downloads\SS-UOP\backend\src\main\java\lk\ac\pdn\sms\service\ActivityLogService.java
 C:\Users\GMCha\Downloads\SS-UOP\backend\src\main\java\lk\ac\pdn\sms\service\SocietyService.java
+C:\Users\GMCha\Downloads\SS-UOP\backend\src\main\java\lk\ac\pdn\sms\controller\EventPermissionController.java
 C:\Users\GMCha\Downloads\SS-UOP\backend\src\main\java\lk\ac\pdn\sms\service\ApprovalService.java
 C:\Users\GMCha\Downloads\SS-UOP\backend\src\main\java\lk\ac\pdn\sms\dto\EventPermissionDto.java
+C:\Users\GMCha\Downloads\SS-UOP\backend\src\main\java\lk\ac\pdn\sms\service\EventPermissionService.java
 C:\Users\GMCha\Downloads\SS-UOP\backend\src\main\java\lk\ac\pdn\sms\entity\RenewalPlanningEvent.java
 C:\Users\GMCha\Downloads\SS-UOP\backend\src\main\java\lk\ac\pdn\sms\service\EmailValidationService.java
 C:\Users\GMCha\Downloads\SS-UOP\backend\src\main\java\lk\ac\pdn\sms\config\SecurityConfig.java

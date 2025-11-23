@@ -57,16 +57,21 @@ public class AdminController {
      */
     @GetMapping("/user-info")
     public ResponseEntity<?> getAdminUserInfo(@AuthenticationPrincipal OAuth2User principal) {
-        // FIX: Use HashMap instead of Map.of to allow null values (like faculty)
-        Map<String, Object> response = new java.util.HashMap<>();
-        response.put("id", principal.getAttributes().get("id"));
-        response.put("email", principal.getAttribute("email"));
-        response.put("name", principal.getAttributes().get("name"));
-        response.put("role", principal.getAttributes().get("role"));
-        response.put("faculty", principal.getAttributes().get("faculty")); // Now safe even if null
+        // FIX: Use HashMap instead of Map.of() to handle null values safely
+        java.util.Map<String, Object> response = new java.util.HashMap<>();
+
+        if (principal != null) {
+            response.put("id", principal.getAttributes().get("id"));
+            response.put("email", principal.getAttribute("email"));
+            response.put("name", principal.getAttributes().get("name"));
+            response.put("role", principal.getAttributes().get("role"));
+            response.put("faculty", principal.getAttributes().get("faculty")); // Won't crash if null
+        }
 
         return ResponseEntity.ok(response);
     }
+
+
 
     /**
      * Endpoint for fetching activity logs (common for Dean, VC, AR, SS).

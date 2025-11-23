@@ -10,10 +10,10 @@ services:
       MYSQL_USER: sms_user
       MYSQL_PASSWORD: sms_password
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./src/main/resources/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - ./src/main/resources/database_setup.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - sms-network
 
