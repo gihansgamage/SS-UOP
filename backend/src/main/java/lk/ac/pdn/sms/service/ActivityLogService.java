@@ -21,19 +21,11 @@ public class ActivityLogService {
     private AdminUserRepository adminUserRepository;
 
     public void logActivity(String action, String target, String userName) {
-        // Try to find if the user is an admin (e.g., Dean, AR)
         AdminUser user = adminUserRepository.findByEmail(userName + "@pdn.ac.lk").orElse(null);
 
         ActivityLog log = new ActivityLog();
-
-        // FIX: If user is found, use their ID. If not (e.g. Applicant), set NULL.
-        // Do NOT set 0L, as it violates the Foreign Key constraint.
-        if (user != null) {
-            log.setUserId(user.getId());
-        } else {
-            log.setUserId(null);
-        }
-
+        // FIX: Set to null if user is not found (instead of 0L)
+        log.setUserId(user != null ? user.getId() : null);
         log.setUserName(userName);
         log.setAction(action);
         log.setTarget(target);
@@ -44,9 +36,9 @@ public class ActivityLogService {
     public void logActivity(String action, String target, String adminId, String userName) {
         ActivityLog log = new ActivityLog();
         try {
-            // FIX: Try to parse ID, but if fails/invalid, use NULL
             log.setUserId(Long.valueOf(adminId));
         } catch (NumberFormatException | NullPointerException e) {
+            // FIX: Set to null if ID is invalid
             log.setUserId(null);
         }
 
