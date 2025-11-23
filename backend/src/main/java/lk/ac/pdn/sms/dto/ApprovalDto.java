@@ -1,19 +1,35 @@
 package lk.ac.pdn.sms.dto;
 
-import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ApprovalDto {
 
-    @NotNull(message = "Application ID is required")
+    // --- Fields for Listing (Dashboard) ---
+    private Long id;
+    private String type; // "registration", "renewal", "event"
+    private String societyName;
+    private String eventName;
+    private String applicantName;
+    private String faculty;
+    private LocalDateTime submittedDate;
+    private String status;
+
+    // --- Fields for Actions (Approve/Reject) ---
     private Long applicationId;
-
-    @NotNull(message = "Action is required")
     private ApprovalAction action;
-
     private String rejectionReason;
 
+    // --- HELPER METHOD (FIXES YOUR ERROR) ---
+    // This allows RenewalService to call .getReason() instead of .getRejectionReason()
     public String getReason() {
         return rejectionReason;
     }
