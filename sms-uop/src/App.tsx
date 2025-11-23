@@ -11,6 +11,7 @@ import EventPermissionPage from './pages/EventPermissionPage';
 import ExplorePage from './pages/ExplorePage';
 import AdminPanel from './pages/AdminPanel';
 import AdminLoginPage from './pages/AdminLoginPage';
+import AdminDashboard from "./components/Admin/AdminDashboard.tsx";
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
                 <Route path="/explore" element={<ExplorePage />} />
                 <Route path="/admin" element={<AdminPanel />} />
                 <Route path="/admin/login" element={<AdminLoginPage />} />
+                <Route path="/admin/dashboard" element={<AdminDashboard />} />
               </Routes>
             </main>
             <Footer />

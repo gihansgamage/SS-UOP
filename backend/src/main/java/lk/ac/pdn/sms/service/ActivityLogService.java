@@ -21,10 +21,11 @@ public class ActivityLogService {
     private AdminUserRepository adminUserRepository;
 
     public void logActivity(String action, String target, String userName) {
-        AdminUser user = adminUserRepository.findByEmail(userName + "@pdn.ac.lk").orElse(null);
+        // MODIFIED: Removed + "@pdn.ac.lk" to allow finding users by ANY email (e.g., Gmail)
+        AdminUser user = adminUserRepository.findByEmail(userName).orElse(null);
 
         ActivityLog log = new ActivityLog();
-        // FIX: Set to null if user is not found (instead of 0L)
+        // FIX: Set to null if user not found (instead of 0L)
         log.setUserId(user != null ? user.getId() : null);
         log.setUserName(userName);
         log.setAction(action);
@@ -38,7 +39,7 @@ public class ActivityLogService {
         try {
             log.setUserId(Long.valueOf(adminId));
         } catch (NumberFormatException | NullPointerException e) {
-            // FIX: Set to null if ID is invalid
+            // FIX: Set to null if ID invalid
             log.setUserId(null);
         }
 
