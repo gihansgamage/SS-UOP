@@ -57,14 +57,15 @@ public class AdminController {
      */
     @GetMapping("/user-info")
     public ResponseEntity<?> getAdminUserInfo(@AuthenticationPrincipal OAuth2User principal) {
-        // Returns the custom attributes set in CustomOAuth2UserService
-        return ResponseEntity.ok(Map.of(
-                "id", principal.getAttributes().get("id"),
-                "email", principal.getAttribute("email"),
-                "name", principal.getAttributes().get("name"),
-                "role", principal.getAttributes().get("role"),
-                "faculty", principal.getAttributes().get("faculty")
-        ));
+        // FIX: Use HashMap instead of Map.of to allow null values (like faculty)
+        Map<String, Object> response = new java.util.HashMap<>();
+        response.put("id", principal.getAttributes().get("id"));
+        response.put("email", principal.getAttribute("email"));
+        response.put("name", principal.getAttributes().get("name"));
+        response.put("role", principal.getAttributes().get("role"));
+        response.put("faculty", principal.getAttributes().get("faculty")); // Now safe even if null
+
+        return ResponseEntity.ok(response);
     }
 
     /**

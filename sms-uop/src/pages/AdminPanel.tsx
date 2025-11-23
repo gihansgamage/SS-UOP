@@ -14,15 +14,17 @@ const AdminPanel: React.FC = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
 
-  if (!user || !['dean', 'assistant_registrar', 'vice_chancellor', 'student_service', 'test_user'].includes(user.role)) {
+  // FIX: Add .toLowerCase() to ensure it matches backend data
+  if (!user || !['dean', 'assistant_registrar', 'vice_chancellor', 'student_service', 'test_user'].includes(user.role.toLowerCase())) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <Shield className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
-          <p className="text-gray-600">You don't have permission to access the admin panel.</p>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <Shield className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
+            <p className="text-gray-600">You don't have permission to access the admin panel.</p>
+            <p className="text-xs text-gray-400 mt-2">Current Role: {user?.role}</p>
+          </div>
         </div>
-      </div>
     );
   }
 

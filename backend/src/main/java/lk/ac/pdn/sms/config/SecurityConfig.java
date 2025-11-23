@@ -81,7 +81,7 @@ public class SecurityConfig {
     @Bean
     public AuthenticationSuccessHandler oauth2AuthenticationSuccessHandler() {
         return (request, response, authentication) -> {
-            response.sendRedirect(frontendUrl + "/admin/dashboard");
+            response.sendRedirect(frontendUrl + "/admin");
         };
     }
 
