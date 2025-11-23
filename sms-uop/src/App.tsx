@@ -11,6 +11,9 @@ import EventPermissionPage from './pages/EventPermissionPage';
 import ExplorePage from './pages/ExplorePage';
 import AdminPanel from './pages/AdminPanel';
 import AdminLoginPage from './pages/AdminLoginPage';
+import AboutPage from './pages/AboutPage';
+import GuidelinesPage from './pages/GuidelinesPage';
+import HelpPage from './pages/HelpPage';
 
 
 function App() {
@@ -29,6 +32,9 @@ function App() {
                 <Route path="/explore" element={<ExplorePage />} />
                 <Route path="/admin" element={<AdminPanel />} />
                 <Route path="/admin/login" element={<AdminLoginPage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/guidelines" element={<GuidelinesPage />} />
+                <Route path="/help" element={<HelpPage />} />
               </Routes>
             </main>
             <Footer />

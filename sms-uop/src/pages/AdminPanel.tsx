@@ -35,8 +35,8 @@ const AdminPanel: React.FC = () => {
     { id: 'events', label: 'Events', icon: Calendar },
     { id: 'communication', label: 'Communication', icon: Mail },
     { id: 'logs', label: 'Activity Logs', icon: Activity },
-    ...(user.role === 'assistant_registrar' ? [{ id: 'users', label: 'User Management', icon: UserPlus }] : []),
-    ...(user.role === 'student_service' ? [{ id: 'monitoring', label: 'Application Monitoring', icon: Activity }] : [])
+    ...(user.role === 'assistant_registrar' || 'ASSISTANT_REGISTRAR' ? [{ id: 'users', label: 'User Management', icon: UserPlus }] : []),
+    ...(user.role === 'student_service' || 'STUDENT_SERVICE' ?  [{ id: 'monitoring', label: 'Application Monitoring', icon: Activity }] : [])
   ];
 
   const renderContent = () => {
@@ -54,9 +54,9 @@ const AdminPanel: React.FC = () => {
       case 'logs':
         return <AdminLogs />;
       case 'users':
-        return user.role === 'assistant_registrar' ? <AdminUsers /> : <AdminDashboard />;
+        return user.role === 'assistant_registrar' || 'ASSISTANT_REGISTRAR' ? <AdminUsers /> : <AdminDashboard />;
       case 'monitoring':
-        return user.role === 'student_service' ? <StudentServiceMonitoring /> : <AdminDashboard />;
+        return user.role === 'student_service' || 'STUDENT_SERVICE'  ? <StudentServiceMonitoring /> : <AdminDashboard />;
       default:
         return <AdminDashboard />;
     }

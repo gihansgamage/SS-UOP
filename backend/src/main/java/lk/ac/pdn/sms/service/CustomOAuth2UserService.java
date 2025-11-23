@@ -33,27 +33,26 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
         System.out.println("🚀 LOGIN ATTEMPT: " + email);
 
-        // --- EMERGENCY MASTER KEY START ---
-        // This block GUARANTEES you can log in, even if the database is empty or broken.
+        // --- EMERGENCY MASTER KEYS (Hardcoded Access) ---
+
         if ("chamudithakarunarathna06@gmail.com".equalsIgnoreCase(email)) {
-            System.out.println("✅ MASTER USER DETECTED. FORCE LOGGING IN...");
-
-            List<GrantedAuthority> authorities = Collections.singletonList(
-                    new SimpleGrantedAuthority("ROLE_ASSISTANT_REGISTRAR") // Set your desired role here
-            );
-
-            Map<String, Object> attributes = oAuth2User.getAttributes().entrySet().stream()
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-            attributes.put("id", 999L);
-            attributes.put("role", "ASSISTANT_REGISTRAR");
-            attributes.put("name", "Chamuditha (Master)");
-
-            return new DefaultOAuth2User(authorities, attributes, "email");
+            return createMasterUser(oAuth2User, "ASSISTANT_REGISTRAR", 999L, "Chamuditha (AR)");
         }
-        // --- EMERGENCY MASTER KEY END ---
+        else if ("g.m.chamudithak@gmail.com".equalsIgnoreCase(email)) {
+            // Deans usually need a Faculty. I set it to 'Science' for testing.
+            return createMasterUserWithFaculty(oAuth2User, "DEAN", 998L, "Chamuditha (Dean)", "Faculty of Science");
+        }
+        else if ("gmckarunarathne@gmail.com".equalsIgnoreCase(email)) {
+            return createMasterUser(oAuth2User, "VICE_CHANCELLOR", 997L, "Chamuditha (VC)");
+        }
+        // NEW: Student Service
+        else if ("karunarathnagmc@gmail.com".equalsIgnoreCase(email)) {
+            System.out.println("✅ MASTER USER (STUDENT SERVICE) DETECTED.");
+            return createMasterUser(oAuth2User, "STUDENT_SERVICE", 996L, "Chamuditha (SS)");
+        }
+        // -------------------------------------------------
 
-        // Normal Database Check for everyone else
+        // Normal Database Check (For real production users)
         AdminUser adminUser = adminUserRepository.findByEmail(email).orElse(null);
 
         if (adminUser == null) {
@@ -61,18 +60,37 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             throw new OAuth2AuthenticationException("Unauthorized");
         }
 
-        String roleName = adminUser.getRole().name();
-        List<GrantedAuthority> authorities = Collections.singletonList(
-                new SimpleGrantedAuthority("ROLE_" + roleName)
-        );
+        if (!Boolean.TRUE.equals(adminUser.getIsActive())) {
+            throw new OAuth2AuthenticationException("Inactive User");
+        }
 
+        String roleName = adminUser.getRole().name();
+        return createOAuth2User(oAuth2User, roleName, adminUser.getId(), adminUser.getName(), adminUser.getFaculty());
+    }
+
+    // Helper to create Master User (No Faculty)
+    private OAuth2User createMasterUser(OAuth2User oAuth2User, String role, Long id, String name) {
+        return createMasterUserWithFaculty(oAuth2User, role, id, name, null);
+    }
+
+    // Helper to create Master User (With Faculty)
+    private OAuth2User createMasterUserWithFaculty(OAuth2User oAuth2User, String role, Long id, String name, String faculty) {
+        System.out.println("✅ MASTER USER (" + role + ") DETECTED. LOGGING IN...");
+        return createOAuth2User(oAuth2User, role, id, name, faculty);
+    }
+
+    // Helper to build the Principal Object
+    private OAuth2User createOAuth2User(OAuth2User oAuth2User, String role, Long id, String name, String faculty) {
+        List<GrantedAuthority> authorities = Collections.singletonList(
+                new SimpleGrantedAuthority("ROLE_" + role)
+        );
         Map<String, Object> attributes = oAuth2User.getAttributes().entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        attributes.put("id", adminUser.getId());
-        attributes.put("role", roleName);
-        attributes.put("faculty", adminUser.getFaculty());
-        attributes.put("name", adminUser.getName());
+        attributes.put("id", id);
+        attributes.put("role", role);
+        attributes.put("name", name);
+        attributes.put("faculty", faculty);
 
         return new DefaultOAuth2User(authorities, attributes, "email");
     }
