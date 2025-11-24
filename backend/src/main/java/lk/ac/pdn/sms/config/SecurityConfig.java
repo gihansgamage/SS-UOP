@@ -33,34 +33,32 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable()) // Disable CSRF for public forms
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authz -> authz
-                        // --- FIX STARTS HERE ---
-                        // 1. Allow Society Registration (Public POST)
+                        // --- 1. PUBLIC POST ENDPOINTS (FORMS) ---
                         .requestMatchers(HttpMethod.POST, "/api/societies/register").permitAll()
-
-                        // 2. Allow Event Permission Requests (Public POST)
                         .requestMatchers(HttpMethod.POST, "/api/events/request").permitAll()
 
-                        // 3. Keep existing public GET endpoints
+                        // FIX: Add this line to allow Renewal Form Submission!
+                        .requestMatchers(HttpMethod.POST, "/api/renewals/submit").permitAll()
+
+                        // --- 2. PUBLIC GET ENDPOINTS ---
                         .requestMatchers(HttpMethod.GET, "/api/societies/public/**").permitAll()
                         .requestMatchers("/api/validation/**").permitAll()
-                        // --- FIX ENDS HERE ---
+                        .requestMatchers("/error").permitAll()
 
-                        // Role-based admin access
+                        // --- 3. ADMIN ROLES ---
                         .requestMatchers("/api/admin/vc/**").hasRole("VICE_CHANCELLOR")
                         .requestMatchers("/api/admin/ar/**").hasRole("ASSISTANT_REGISTRAR")
                         .requestMatchers("/api/admin/dean/**").hasRole("DEAN")
                         .requestMatchers("/api/admin/ss/**").hasRole("STUDENT_SERVICE")
-                        .requestMatchers("/api/admin/**").hasAnyRole("VICE_CHANCELLOR", "ASSISTANT_REGISTRAR", "DEAN", "STUDENT_SERVICE")
+                        .requestMatchers("/api/admin/**").authenticated()
 
-                        // Default: Everything else requires login
+                        // --- 4. DEFAULT ---
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
-                        .userInfoEndpoint(userInfo -> userInfo
-                                .userService(customOAuth2UserService)
-                        )
+                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
                         .successHandler(oauth2AuthenticationSuccessHandler())
                         .failureHandler((request, response, exception) -> {
                             response.sendRedirect(frontendUrl + "/admin/login?error=auth_failed");

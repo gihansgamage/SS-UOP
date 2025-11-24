@@ -20,7 +20,7 @@ const steps = [
 
 const RenewalPage: React.FC = () => {
   const navigate = useNavigate();
-  const { addActivityLog } = useData(); // Removed addRenewal
+  const { addActivityLog } = useData();
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false); // Loading state
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -91,7 +91,12 @@ const RenewalPage: React.FC = () => {
           month: evt.month || evt.date,
           activity: evt.activity
         })),
-        previousActivities: formData.previousActivities
+
+        // FIX: Ensure Previous Activities are mapped correctly too
+        previousActivities: formData.previousActivities?.map((evt: any) => ({
+          month: evt.month || evt.date,
+          activity: evt.activity
+        }))
       };
 
       console.log("Sending Renewal Payload:", payload);
