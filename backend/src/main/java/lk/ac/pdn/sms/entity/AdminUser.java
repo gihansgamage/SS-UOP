@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnore; // Import this
 
 import java.time.LocalDateTime;
 
@@ -22,6 +23,10 @@ public class AdminUser {
 
     @Column(unique = true, nullable = false)
     private String email;
+
+    // FIX: Add Password Field
+    @JsonIgnore // Prevent sending password in API responses
+    private String password;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

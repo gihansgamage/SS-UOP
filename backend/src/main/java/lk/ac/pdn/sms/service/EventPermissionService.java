@@ -3,8 +3,14 @@ package lk.ac.pdn.sms.service;
 import lk.ac.pdn.sms.dto.EventPermissionDto;
 import lk.ac.pdn.sms.entity.EventPermission;
 import lk.ac.pdn.sms.repository.EventPermissionRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime; // Make sure this is imported
+import java.time.LocalTime;
 
 @Service
 @Transactional
@@ -30,11 +36,19 @@ public class EventPermissionService {
         event.setApplicantMobile(dto.getApplicantMobile());
 
         event.setEventName(dto.getEventName());
-        event.setEventDate(dto.getEventDate());
-        event.setTimeFrom(dto.getTimeFrom());
-        event.setTimeTo(dto.getTimeTo());
-        event.setPlace(dto.getPlace());
 
+        // Handle Dates and Times
+        if (dto.getEventDate() != null) {
+            event.setEventDate(LocalDate.parse(dto.getEventDate()));
+        }
+        if (dto.getTimeFrom() != null) {
+            event.setTimeFrom(LocalTime.parse(dto.getTimeFrom()));
+        }
+        if (dto.getTimeTo() != null) {
+            event.setTimeTo(LocalTime.parse(dto.getTimeTo()));
+        }
+
+        event.setPlace(dto.getPlace());
         event.setIsInsideUniversity(dto.getIsInsideUniversity());
         event.setLatePassRequired(dto.getLatePassRequired());
         event.setOutsidersInvited(dto.getOutsidersInvited());
@@ -54,21 +68,44 @@ public class EventPermissionService {
         event.setPremisesOfficerDivision(dto.getPremisesOfficerDivision());
 
         event.setReceiptNumber(dto.getReceiptNumber());
-        event.setPaymentDate(dto.getPaymentDate());
+        if (dto.getPaymentDate() != null && !dto.getPaymentDate().isEmpty()) {
+            event.setPaymentDate(LocalDate.parse(dto.getPaymentDate()));
+        }
 
         // Set Initial Status
         event.setStatus(EventPermission.EventStatus.PENDING_AR);
 
+        // --- FIX: Changed LocalDate.now() to LocalDateTime.now() ---
+        event.setSubmittedDate(LocalDateTime.now());
+
         EventPermission savedEvent = eventPermissionRepository.save(event);
 
-        // Log Activity (Use "user" as ID for public applicants)
+        // Log Activity
         activityLogService.logActivity(
                 "EVENT REQUEST",
                 "Event: " + dto.getEventName(),
-                "user-" + dto.getApplicantRegNo(), // Fake ID for log
+                "user-" + dto.getApplicantRegNo(),
                 dto.getApplicantName()
         );
 
         return savedEvent;
+    }
+
+    public EventPermission getEventById(Long id) {
+        return eventPermissionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Event not found"));
+    }
+
+    public Page<EventPermission> getAllEvents(String status, Pageable pageable) {
+        if (status != null && !status.isEmpty()) {
+            try {
+                EventPermission.EventStatus statusEnum = EventPermission.EventStatus.valueOf(status.toUpperCase());
+                return eventPermissionRepository.findByStatus(statusEnum, pageable);
+            } catch (IllegalArgumentException e) {
+                // If invalid status, fallback to returning all
+                return eventPermissionRepository.findAll(pageable);
+            }
+        }
+        return eventPermissionRepository.findAll(pageable);
     }
 }

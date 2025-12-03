@@ -39,9 +39,10 @@ public class RenewalService {
     private PDFService pdfService;
 
     public SocietyRenewal submitRenewal(SocietyRenewalDto dto) {
-        Society existingSociety = societyRepository.findBySocietyNameAndStatus(
-                        dto.getSocietyName(), Society.SocietyStatus.ACTIVE)
-                .orElseThrow(() -> new RuntimeException("Active society not found with name: " + dto.getSocietyName()));
+        // FIX: Use findBySocietyName to check existence, ignoring status
+        // This allows both Active and Inactive societies to renew
+        Society existingSociety = societyRepository.findBySocietyName(dto.getSocietyName())
+                .orElseThrow(() -> new RuntimeException("Society not found with name: " + dto.getSocietyName()));
 
         if (renewalRepository.existsBySocietyNameAndYear(dto.getSocietyName(), LocalDate.now().getYear())) {
             throw new RuntimeException("Renewal already submitted for this society in current year");
@@ -56,6 +57,8 @@ public class RenewalService {
 
         return renewal;
     }
+
+    // ... (Rest of the file remains the same as previously provided) ...
 
     public List<SocietyRenewal> getPendingRenewals(String faculty, String status, String userEmail) {
         AdminUser admin = adminUserRepository.findByEmail(userEmail)
@@ -184,8 +187,7 @@ public class RenewalService {
     }
 
     private void updateSocietyFromRenewal(SocietyRenewal renewal) {
-        Society society = societyRepository.findBySocietyNameAndStatus(
-                        renewal.getSocietyName(), Society.SocietyStatus.ACTIVE)
+        Society society = societyRepository.findBySocietyName(renewal.getSocietyName())
                 .orElseThrow(() -> new RuntimeException("Society not found"));
         society.setWebsite(renewal.getWebsite());
         society.setYear(renewal.getRenewalYear());

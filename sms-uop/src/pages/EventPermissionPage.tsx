@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download, Send, Eye } from 'lucide-react';
-import { useData } from '../contexts/DataContext';
+import { Send, Eye } from 'lucide-react';
+import { useData } from '../contexts/DataContext'; // Fetches data from DB via API
 import { EventPermission } from '../types';
 import FormField from '../components/Common/FormField';
 import { validateEmail, validateMobile } from '../utils/validation';
-import { apiService } from '../services/api'; // IMPORT API SERVICE
+import { apiService } from '../services/api';
 
 const EventPermissionPage: React.FC = () => {
   const navigate = useNavigate();
-  // Keep societies for the dropdown list, but remove addEventPermission
+  // Get societies list from DataContext (which fetches from the 'societies' database table)
   const { societies, addActivityLog } = useData();
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [showPreview, setShowPreview] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false); // Loading state
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState<Partial<EventPermission>>({
     societyName: '',
@@ -45,7 +45,10 @@ const EventPermissionPage: React.FC = () => {
     paymentDate: ''
   });
 
-  const activeSocieties = societies.filter(s => s.status === 'active');
+  // Filter for Active societies from the DB and Sort them alphabetically
+  const activeSocieties = societies
+      .filter(s => s.status && s.status.toLowerCase() === 'active')
+      .sort((a, b) => a.societyName.localeCompare(b.societyName));
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -116,14 +119,11 @@ const EventPermissionPage: React.FC = () => {
     // --- CONNECT TO BACKEND ---
     setIsSubmitting(true);
     try {
-      // 1. Format Data for Java Backend
       const payload = {
         ...formData,
         // Fix Time Format: Append ":00" if missing (Java LocalTime needs HH:mm:ss)
         timeFrom: formData.timeFrom?.length === 5 ? `${formData.timeFrom}:00` : formData.timeFrom,
         timeTo: formData.timeTo?.length === 5 ? `${formData.timeTo}:00` : formData.timeTo,
-
-        // Ensure booleans are actually boolean types
         isInsideUniversity: !!formData.isInsideUniversity,
         latePassRequired: !!formData.latePassRequired,
         outsidersInvited: !!formData.outsidersInvited,
@@ -132,10 +132,8 @@ const EventPermissionPage: React.FC = () => {
 
       console.log("Sending Event Request:", payload);
 
-      // 2. Send to API
       await apiService.events.request(payload);
 
-      // 3. Log Success locally
       addActivityLog(
           'Event Permission Submitted',
           formData.eventName || 'Unknown Event',
@@ -179,11 +177,12 @@ const EventPermissionPage: React.FC = () => {
               <div>
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">Society & Applicant Information</h2>
                 <div className="grid md:grid-cols-2 gap-4">
+                  {/* DROPDOWN: Populated from DB Societies */}
                   <FormField
                       label="Society Name"
                       name="societyName"
                       as="select"
-                      //options={activeSocieties.map(s => s.societyName)}
+                      options={activeSocieties.map(s => s.societyName)}
                       value={formData.societyName || ''}
                       onChange={handleChange}
                       error={errors.societyName}
@@ -513,13 +512,19 @@ const EventPermissionPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Preview Modal - Keep existing logic */}
+        {/* Preview Modal */}
         {showPreview && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
               <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
                 <div className="p-6">
                   <h3 className="text-lg font-semibold mb-4">Preview</h3>
-                  {/* ... Add simple preview logic here if needed or keep the original code ... */}
+                  {/* Basic Preview Content */}
+                  <div className="space-y-4">
+                    <p><strong>Society:</strong> {formData.societyName}</p>
+                    <p><strong>Event:</strong> {formData.eventName}</p>
+                    <p><strong>Date:</strong> {formData.eventDate}</p>
+                    {/* Add more preview fields as needed */}
+                  </div>
                   <div className="flex justify-end mt-4">
                     <button onClick={() => setShowPreview(false)} className="bg-gray-300 px-4 py-2 rounded">Close</button>
                   </div>

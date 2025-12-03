@@ -4,10 +4,13 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonProperty; // Import for JSON formatting
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 @Entity
 @Table(name = "societies")
@@ -30,25 +33,23 @@ public class Society {
     private SocietyStatus status = SocietyStatus.ACTIVE;
 
     @Column(nullable = false)
-    private Integer year; // Represents the last renewed/registered year
+    private Integer year;
 
-    // START FIX: Added critical fields for data migration/renewal
     @Column(columnDefinition = "TEXT")
     private String aims;
 
-    private String agmDate; // Stored as string for flexibility from form
-
+    private String agmDate;
     private String bankAccount;
     private String bankName;
     private String website;
 
     @Column(name = "primary_faculty")
-    private String primaryFaculty; // Used for Dean filtering
+    private String primaryFaculty;
 
     @Column(name = "last_renewal_year")
     private Integer lastRenewalYear;
 
-    // Senior Treasurer Details (Flattened fields for migration)
+    // Flattened Senior Treasurer Fields
     private String seniorTreasurerTitle;
     private String seniorTreasurerFullName;
     private String seniorTreasurerDesignation;
@@ -56,7 +57,6 @@ public class Society {
     private String seniorTreasurerEmail;
     private String seniorTreasurerAddress;
     private String seniorTreasurerMobile;
-    // END FIX
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -64,18 +64,16 @@ public class Society {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "society", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // Fetch EAGERly to ensure officials are loaded for the communication center
+    @OneToMany(mappedBy = "society", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<SocietyOfficial> officials;
 
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
-        registeredDate = LocalDate.now();
-        // The 'year' field is often populated from the registration application's year
-        if (this.year == null) {
-            this.year = LocalDate.now().getYear();
-        }
+        if (this.registeredDate == null) this.registeredDate = LocalDate.now();
+        if (this.year == null) this.year = LocalDate.now().getYear();
     }
 
     @PreUpdate
@@ -85,5 +83,51 @@ public class Society {
 
     public enum SocietyStatus {
         ACTIVE, INACTIVE
+    }
+
+    // --- JSON HELPERS FOR FRONTEND ---
+
+    @JsonProperty("president")
+    @Transient
+    public Map<String, String> getPresidentInfo() {
+        return getOfficialInfo("PRESIDENT");
+    }
+
+    @JsonProperty("secretary")
+    @Transient
+    public Map<String, String> getSecretaryInfo() {
+        return getOfficialInfo("SECRETARY");
+    }
+
+    @JsonProperty("juniorTreasurer")
+    @Transient
+    public Map<String, String> getJuniorTreasurerInfo() {
+        return getOfficialInfo("JUNIOR_TREASURER");
+    }
+
+    @JsonProperty("seniorTreasurer")
+    @Transient
+    public Map<String, String> getSeniorTreasurerInfo() {
+        Map<String, String> info = new HashMap<>();
+        info.put("name", (seniorTreasurerTitle != null ? seniorTreasurerTitle + " " : "") + seniorTreasurerFullName);
+        info.put("email", seniorTreasurerEmail);
+        info.put("mobile", seniorTreasurerMobile);
+        return info;
+    }
+
+    private Map<String, String> getOfficialInfo(String position) {
+        Map<String, String> info = new HashMap<>();
+        if (officials != null) {
+            for (SocietyOfficial official : officials) {
+                if (official.getPosition().name().equalsIgnoreCase(position)) {
+                    info.put("name", official.getName());
+                    info.put("email", official.getEmail());
+                    info.put("mobile", official.getMobile());
+                    info.put("regNo", official.getRegNo());
+                    return info;
+                }
+            }
+        }
+        return null; // Returns null if official not found
     }
 }

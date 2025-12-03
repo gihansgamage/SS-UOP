@@ -1,5 +1,12 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { apiService } from '../services/api';
 import { Society, SocietyRegistration, SocietyRenewal, EventPermission, ActivityLog } from '../types';
+
+interface DashboardStats {
+  totalSocieties: number;
+  activeSocieties: number;
+  currentYearRegistrations: number;
+}
 
 interface DataContextType {
   societies: Society[];
@@ -7,15 +14,19 @@ interface DataContextType {
   renewals: SocietyRenewal[];
   eventPermissions: EventPermission[];
   activityLogs: ActivityLog[];
-  addRegistration: (registration: SocietyRegistration) => void;
-  addRenewal: (renewal: SocietyRenewal) => void;
-  addEventPermission: (permission: EventPermission) => void;
-  updateRegistrationStatus: (id: string, status: SocietyRegistration['status'], rejectionReason?: string) => void;
-  updateRenewalStatus: (id: string, status: SocietyRenewal['status'], rejectionReason?: string) => void;
-  updateEventPermissionStatus: (id: string, status: EventPermission['status'], rejectionReason?: string) => void;
+  stats: DashboardStats;
+  loading: boolean;
+  error: string | null;
+  addRegistration: (registration: any) => Promise<void>;
+  addRenewal: (renewal: any) => Promise<void>;
+  addEventPermission: (permission: any) => Promise<void>;
+  updateRegistrationStatus: (id: string, status: string, rejectionReason?: string) => Promise<void>;
+  updateRenewalStatus: (id: string, status: string, rejectionReason?: string) => Promise<void>;
+  updateEventPermissionStatus: (id: string, status: string, rejectionReason?: string) => Promise<void>;
   addActivityLog: (action: string, target: string, userId: string, userName: string, userRole?: string) => void;
-  approveSociety: (registration: SocietyRegistration) => void;
-  approveRenewal: (renewal: SocietyRenewal) => void;
+  approveSociety: (registration: SocietyRegistration) => Promise<void>;
+  approveRenewal: (renewal: SocietyRenewal) => Promise<void>;
+  refreshData: () => Promise<void>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -33,225 +44,120 @@ interface DataProviderProps {
 }
 
 export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
-  const [societies, setSocieties] = useState<Society[]>(() => {
-    const saved = localStorage.getItem('sms_societies');
-    return saved ? JSON.parse(saved) : [];
+  const [societies, setSocieties] = useState<Society[]>([]);
+  const [registrations, setRegistrations] = useState<SocietyRegistration[]>([]);
+  const [renewals, setRenewals] = useState<SocietyRenewal[]>([]);
+  const [eventPermissions, setEventPermissions] = useState<EventPermission[]>([]);
+  const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
+
+  const [stats, setStats] = useState<DashboardStats>({
+    totalSocieties: 0,
+    activeSocieties: 0,
+    currentYearRegistrations: 0
   });
 
-  const [registrations, setRegistrations] = useState<SocietyRegistration[]>(() => {
-    const saved = localStorage.getItem('sms_registrations');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [renewals, setRenewals] = useState<SocietyRenewal[]>(() => {
-    const saved = localStorage.getItem('sms_renewals');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const fetchData = useCallback(async () => {
+    try {
+      // FIX: Fetch ALL societies (removed status: 'active' filter)
+      // This ensures Inactive societies also appear in the Renewal Dropdown
+      const societiesRes = await apiService.societies.getAll({ size: 1000 });
+      setSocieties(societiesRes.data.content || []);
 
-  const [eventPermissions, setEventPermissions] = useState<EventPermission[]>(() => {
-    const saved = localStorage.getItem('sms_event_permissions');
-    return saved ? JSON.parse(saved) : [];
-  });
+      const statsRes = await apiService.societies.getStatistics();
+      setStats(statsRes.data);
 
-  const [activityLogs, setActivityLogs] = useState<ActivityLog[]>(() => {
-    const saved = localStorage.getItem('sms_activity_logs');
-    return saved ? JSON.parse(saved) : [];
-  });
+      const eventsRes = await apiService.events.getAll({ status: 'APPROVED' });
+      setEventPermissions(Array.isArray(eventsRes.data) ? eventsRes.data : (eventsRes.data.content || []));
 
-  const saveToStorage = (key: string, data: any) => {
-    localStorage.setItem(key, JSON.stringify(data));
-  };
+      // Try to fetch Admin Data (Silent fail if not admin)
+      try {
+        const monitoringRes = await apiService.admin.getSSMonitoring();
+        const allItems = monitoringRes.data;
+        if (Array.isArray(allItems)) {
+          setRegistrations(allItems.filter((i: any) => i.type === 'registration') as SocietyRegistration[]);
+          setRenewals(allItems.filter((i: any) => i.type === 'renewal') as SocietyRenewal[]);
+        }
 
-  const addRegistration = (registration: SocietyRegistration) => {
-    const updated = [...registrations, registration];
-    setRegistrations(updated);
-    saveToStorage('sms_registrations', updated);
-  };
-
-  const addRenewal = (renewal: SocietyRenewal) => {
-    const updated = [...renewals, renewal];
-    setRenewals(updated);
-    saveToStorage('sms_renewals', updated);
-  };
-
-  const addEventPermission = (permission: EventPermission) => {
-    const updated = [...eventPermissions, permission];
-    setEventPermissions(updated);
-    saveToStorage('sms_event_permissions', updated);
-    
-    // Send confirmation email to applicant
-    console.log(`Email sent to ${permission.applicantName} (${permission.applicantEmail}): Event permission application received and is under review by Assistant Registrar`);
-  };
-
-  const updateRegistrationStatus = (id: string, status: SocietyRegistration['status'], rejectionReason?: string) => {
-    const updated = registrations.map(reg => {
-      if (reg.id === id) {
-        const updatedReg = { ...reg, status, rejectionReason };
-        if (status === 'pending_ar') updatedReg.isDeanApproved = true;
-        if (status === 'pending_vc') updatedReg.isARApproved = true;
-        if (status === 'approved') updatedReg.isVCApproved = true;
-        return updatedReg;
+        const logsRes = await apiService.admin.getActivityLogs();
+        if(logsRes.data && logsRes.data.content) {
+          setActivityLogs(logsRes.data.content);
+        }
+      } catch (adminErr) {
+        // Not authorized for admin data, ignore
       }
-      return reg;
-    });
-    setRegistrations(updated);
-    saveToStorage('sms_registrations', updated);
-    
-    // Send email notifications for registration status changes
-    const registration = updated.find(r => r.id === id);
-    if (registration) {
-      if (status === 'pending_ar') {
-        console.log(`Email sent to ${registration.applicantFullName} (${registration.applicantEmail}): Registration approved by Dean, now pending Assistant Registrar approval`);
-      } else if (status === 'pending_vc') {
-        console.log(`Email sent to ${registration.applicantFullName} (${registration.applicantEmail}): Registration approved by Assistant Registrar, now pending Vice Chancellor approval`);
-      } else if (status === 'approved') {
-        console.log(`Email sent to ${registration.applicantFullName} (${registration.applicantEmail}): Congratulations! Your society registration has been approved.`);
-      } else if (status === 'rejected') {
-        console.log(`Email sent to ${registration.applicantFullName} (${registration.applicantEmail}): Registration rejected. Reason: ${rejectionReason}`);
-      }
+
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      setError("Failed to load application data.");
+    } finally {
+      setLoading(false);
     }
-  };
+  }, []);
 
-  const updateRenewalStatus = (id: string, status: SocietyRenewal['status'], rejectionReason?: string) => {
-    const updated = renewals.map(renewal => {
-      if (renewal.id === id) {
-        const updatedRenewal = { ...renewal, status, rejectionReason };
-        if (status === 'pending_ar') updatedRenewal.isDeanApproved = true;
-        if (status === 'pending_vc') updatedRenewal.isARApproved = true;
-        if (status === 'approved') updatedRenewal.isVCApproved = true;
-        return updatedRenewal;
-      }
-      return renewal;
-    });
-    setRenewals(updated);
-    saveToStorage('sms_renewals', updated);
-    
-    // Send email notifications for renewal status changes
-    const renewal = updated.find(r => r.id === id);
-    if (renewal) {
-      if (status === 'pending_ar') {
-        console.log(`Email sent to ${renewal.applicantFullName} (${renewal.applicantEmail}): Renewal approved by Dean, now pending Assistant Registrar approval`);
-      } else if (status === 'pending_vc') {
-        console.log(`Email sent to ${renewal.applicantFullName} (${renewal.applicantEmail}): Renewal approved by Assistant Registrar, now pending Vice Chancellor approval`);
-      } else if (status === 'approved') {
-        console.log(`Email sent to ${renewal.applicantFullName} (${renewal.applicantEmail}): Congratulations! Your society renewal has been approved.`);
-      } else if (status === 'rejected') {
-        console.log(`Email sent to ${renewal.applicantFullName} (${renewal.applicantEmail}): Renewal rejected. Reason: ${rejectionReason}`);
-      }
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const addRegistration = async (registration: any) => { await apiService.societies.register(registration); await fetchData(); };
+  const addRenewal = async (renewal: any) => { await apiService.renewals.submit(renewal); await fetchData(); };
+  const addEventPermission = async (permission: any) => { await apiService.events.request(permission); await fetchData(); };
+
+  const updateRegistrationStatus = async (id: string, status: string, rejectionReason?: string) => {
+    if (status.toLowerCase().includes('reject')) {
+      await apiService.admin.rejectRegistration(id, { reason: rejectionReason || '' });
+    } else {
+      await apiService.admin.approveRegistration(id, {});
     }
+    await fetchData();
   };
 
-  const updateEventPermissionStatus = (id: string, status: EventPermission['status'], rejectionReason?: string) => {
-    const updated = eventPermissions.map(permission => {
-      if (permission.id === id) {
-        const updatedPermission = { ...permission, status, rejectionReason };
-        if (status === 'pending_vc') updatedPermission.isARApproved = true;
-        if (status === 'approved') updatedPermission.isVCApproved = true;
-        return updatedPermission;
-      }
-      return permission;
-    });
-    setEventPermissions(updated);
-    saveToStorage('sms_event_permissions', updated);
-    
-    // Send email notifications for event permission status changes
-    const permission = updated.find(p => p.id === id);
-    if (permission) {
-      if (status === 'pending_vc') {
-        console.log(`Email sent to ${permission.applicantName} (${permission.applicantEmail}): Event permission approved by Assistant Registrar, now pending Vice Chancellor approval`);
-      } else if (status === 'approved') {
-        console.log(`Email sent to ${permission.applicantName} (${permission.applicantEmail}): Event permission approved! You can proceed with your event on ${permission.eventDate}.`);
-      } else if (status === 'rejected') {
-        console.log(`Email sent to ${permission.applicantName} (${permission.applicantEmail}): Event permission rejected. Reason: ${rejectionReason}`);
-      }
+  const updateRenewalStatus = async (id: string, status: string, rejectionReason?: string) => {
+    if (status.toLowerCase().includes('reject')) {
+      await apiService.renewals.reject(id, { reason: rejectionReason || '' });
+    } else {
+      await apiService.renewals.approve(id, {});
     }
+    await fetchData();
   };
 
-  const addActivityLog = (action: string, target: string, userId: string, userName: string, userRole?: string) => {
-    // Extract user role from userId if it contains role info, or default to 'user'
-    let role = userRole || 'user';
-    if (!userRole) {
-      if (userId.includes('dean')) role = 'dean';
-      else if (userId.includes('assistant_registrar')) role = 'assistant_registrar';
-      else if (userId.includes('vice_chancellor')) role = 'vice_chancellor';
-      else if (userId.includes('student_service')) role = 'student_service';
+  const updateEventPermissionStatus = async (id: string, status: string, rejectionReason?: string) => {
+    if (status.toLowerCase().includes('reject')) {
+      await apiService.events.reject(id, { reason: rejectionReason || '' });
+    } else {
+      await apiService.events.approve(id, {});
     }
-    
-    const log: ActivityLog = {
-      id: Math.random().toString(36).substr(2, 9),
-      userId,
-      userName,
-      userRole: role,
-      action,
-      target,
-      timestamp: new Date().toISOString()
-    };
-    const updated = [log, ...activityLogs];
-    setActivityLogs(updated);
-    saveToStorage('sms_activity_logs', updated);
+    await fetchData();
   };
 
-  const approveSociety = (registration: SocietyRegistration) => {
-    const newSociety: Society = {
-      id: registration.id,
-      societyName: registration.societyName,
-      registeredDate: new Date().toISOString().split('T')[0],
-      status: 'active',
-      seniorTreasurer: registration.seniorTreasurer,
-      juniorTreasurer: registration.juniorTreasurer,
-      president: registration.president,
-      secretary: registration.secretary,
-      editor: registration.editor,
-      jointSecretary: registration.jointSecretary,
-      vicePresident: registration.vicePresident,
-      year: registration.year
-    };
-    const updatedSocieties = [...societies, newSociety];
-    setSocieties(updatedSocieties);
-    saveToStorage('sms_societies', updatedSocieties);
-  };
-
-  const approveRenewal = (renewal: SocietyRenewal) => {
-    // Update the existing society with renewal information
-    const updatedSocieties = societies.map(society => {
-      if (society.societyName === renewal.societyName) {
-        return {
-          ...society,
-          seniorTreasurer: renewal.seniorTreasurer,
-          juniorTreasurer: renewal.juniorTreasurer,
-          president: renewal.president,
-          secretary: renewal.secretary,
-          editor: renewal.editor,
-          jointSecretary: renewal.jointSecretary,
-          vicePresident: renewal.vicePresident,
-          website: renewal.website,
-          year: renewal.year
-        };
-      }
-      return society;
-    });
-    setSocieties(updatedSocieties);
-    saveToStorage('sms_societies', updatedSocieties);
-  };
+  const addActivityLog = () => {};
+  const approveSociety = async () => { await fetchData(); };
+  const approveRenewal = async () => { await fetchData(); };
 
   return (
-    <DataContext.Provider value={{
-      societies,
-      registrations,
-      renewals,
-      eventPermissions,
-      activityLogs,
-      addRegistration,
-      addRenewal,
-      addEventPermission,
-      updateRegistrationStatus,
-      updateRenewalStatus,
-      updateEventPermissionStatus,
-      addActivityLog,
-      approveSociety,
-      approveRenewal
-    }}>
-      {children}
-    </DataContext.Provider>
+      <DataContext.Provider value={{
+        societies,
+        registrations,
+        renewals,
+        eventPermissions,
+        activityLogs,
+        stats,
+        loading,
+        error,
+        addRegistration,
+        addRenewal,
+        addEventPermission,
+        updateRegistrationStatus,
+        updateRenewalStatus,
+        updateEventPermissionStatus,
+        addActivityLog,
+        approveSociety,
+        approveRenewal,
+        refreshData: fetchData
+      }}>
+        {children}
+      </DataContext.Provider>
   );
 };

@@ -4,15 +4,23 @@ import { Users, Calendar, FileText, Search, TrendingUp, Clock } from 'lucide-rea
 import { useData } from '../contexts/DataContext';
 
 const HomePage: React.FC = () => {
-  const { societies, eventPermissions } = useData();
+  const { societies, eventPermissions, stats, loading } = useData();
 
-  const upcomingEvents = eventPermissions.filter(event =>
-      new Date(event.eventDate) > new Date() && event.status === 'approved'
-  ).slice(0, 5);
+  const upcomingEvents = eventPermissions.filter(event => {
+    const status = event.status ? (event.status as string).toUpperCase() : '';
+    return new Date(event.eventDate) > new Date() && status === 'APPROVED';
+  }).slice(0, 5);
+
+  if (loading) {
+    return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+    );
+  }
 
   return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        {/* Hero Section */}
         <div className="relative bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
             <div className="text-center">
@@ -35,22 +43,26 @@ const HomePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Statistics */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid md:grid-cols-3 gap-6">
+
             <div className="bg-white rounded-xl shadow-lg p-6 text-center">
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
                 <Users className="w-6 h-6 text-blue-600" />
               </div>
-              <div className="text-3xl font-bold text-gray-900 mb-2">{societies.filter(s => s.status === 'active').length}</div>
-              <div className="text-gray-600">Registered Societies</div>
+              <div className="text-3xl font-bold text-gray-900 mb-2">
+                {stats?.activeSocieties || 0}
+              </div>
+              <div className="text-gray-600">Active Societies</div>
             </div>
 
             <div className="bg-white rounded-xl shadow-lg p-6 text-center">
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
                 <Calendar className="w-6 h-6 text-green-600" />
               </div>
-              <div className="text-3xl font-bold text-gray-900 mb-2">{upcomingEvents.length}</div>
+              <div className="text-3xl font-bold text-gray-900 mb-2">
+                {upcomingEvents.length}
+              </div>
               <div className="text-gray-600">Upcoming Events</div>
             </div>
 
@@ -58,26 +70,23 @@ const HomePage: React.FC = () => {
               <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
                 <TrendingUp className="w-6 h-6 text-purple-600" />
               </div>
-              <div className="text-3xl font-bold text-gray-900 mb-2">{new Date().getFullYear()}</div>
+              <div className="text-3xl font-bold text-gray-900 mb-2">
+                {new Date().getFullYear()}
+              </div>
               <div className="text-gray-600">Current Academic Year</div>
             </div>
           </div>
         </div>
 
-        {/* Core Functions */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4"> Everything you need to manage your society's lifecycle and activities</h2>
-            {/*<p className="text-gray-600 max-w-2xl mx-auto">*/}
-            {/*  Everything you need to manage your society's lifecycle and activities*/}
-            {/*</p>*/}
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Everything you need to manage your society's lifecycle
+            </h2>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Link
-                to="/register"
-                className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow group"
-            >
+            <Link to="/register" className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow group">
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-blue-200 transition-colors">
                 <FileText className="w-6 h-6 text-blue-600" />
               </div>
@@ -85,10 +94,7 @@ const HomePage: React.FC = () => {
               <p className="text-gray-600 text-sm">Submit a new society registration application</p>
             </Link>
 
-            <Link
-                to="/renewal"
-                className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow group"
-            >
+            <Link to="/renewal" className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow group">
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-green-200 transition-colors">
                 <Clock className="w-6 h-6 text-green-600" />
               </div>
@@ -96,10 +102,7 @@ const HomePage: React.FC = () => {
               <p className="text-gray-600 text-sm">Renew your existing society registration</p>
             </Link>
 
-            <Link
-                to="/events"
-                className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow group"
-            >
+            <Link to="/events" className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow group">
               <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-purple-200 transition-colors">
                 <Calendar className="w-6 h-6 text-purple-600" />
               </div>
@@ -107,10 +110,7 @@ const HomePage: React.FC = () => {
               <p className="text-gray-600 text-sm">Request permission for society events</p>
             </Link>
 
-            <Link
-                to="/explore"
-                className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow group"
-            >
+            <Link to="/explore" className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow group">
               <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-orange-200 transition-colors">
                 <Search className="w-6 h-6 text-orange-600" />
               </div>
@@ -120,7 +120,6 @@ const HomePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Upcoming Events */}
         {upcomingEvents.length > 0 && (
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
               <div className="bg-white rounded-xl shadow-lg p-8">
