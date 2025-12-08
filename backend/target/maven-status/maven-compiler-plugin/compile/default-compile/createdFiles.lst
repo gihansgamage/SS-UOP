@@ -12,12 +12,16 @@ lk\ac\pdn\sms\dto\SocietyRegistrationDto$AdvisoryBoardMemberDto.class
 lk\ac\pdn\sms\service\ActivityLogService.class
 lk\ac\pdn\sms\dto\SocietyRenewalDto$CommitteeMemberDto.class
 lk\ac\pdn\sms\repository\ActivityLogRepository.class
+lk\ac\pdn\sms\service\ApprovalService$1.class
 lk\ac\pdn\sms\service\EmailValidationService.class
+lk\ac\pdn\sms\config\SecurityConfig$1.class
 lk\ac\pdn\sms\dto\SocietyRegistrationDto$PlanningEventDto.class
 lk\ac\pdn\sms\entity\SocietyRegistration$ApprovalStage.class
 lk\ac\pdn\sms\repository\SocietyRegistrationRepository.class
+lk\ac\pdn\sms\service\CustomUserDetailsService.class
 lk\ac\pdn\sms\entity\AdminUser.class
 lk\ac\pdn\sms\entity\SocietyOfficial$Position.class
+lk\ac\pdn\sms\config\DataInitializer.class
 lk\ac\pdn\sms\entity\SocietyRenewal.class
 lk\ac\pdn\sms\service\AdminService$1.class
 lk\ac\pdn\sms\entity\RenewalPlanningEvent.class

@@ -34,10 +34,19 @@ public class SocietyService {
     private ActivityLogService activityLogService;
 
     public Page<Society> getAllSocieties(String search, String status, Integer year, Pageable pageable) {
-        if (search != null && !search.isEmpty()) {
-            return societyRepository.findBySearchCriteria(search, status, year, pageable);
+        // Convert String status to Enum safely
+        Society.SocietyStatus statusEnum = null;
+        if (status != null && !status.isEmpty() && !status.equalsIgnoreCase("all")) {
+            try {
+                statusEnum = Society.SocietyStatus.valueOf(status.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                // If invalid status is passed (or empty), treat as null to show ALL
+                statusEnum = null;
+            }
         }
-        return societyRepository.findByStatusAndYear(status, year, pageable);
+
+        // Use the FIXED custom query
+        return societyRepository.searchSocieties(search, statusEnum, year, pageable);
     }
 
     public SocietyRegistration registerSociety(SocietyRegistrationDto dto) {

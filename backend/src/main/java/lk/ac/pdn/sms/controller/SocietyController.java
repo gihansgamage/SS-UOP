@@ -30,7 +30,7 @@ public class SocietyController {
             @RequestParam(required = false) String status,
             @RequestParam(required = false) Integer year,
             Pageable pageable) {
-        
+
         Page<Society> societies = societyService.getAllSocieties(search, status, year, pageable);
         return ResponseEntity.ok(societies);
     }

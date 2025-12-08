@@ -34,9 +34,11 @@ public class AdminService {
     @Autowired
     private ActivityLogService activityLogService;
 
-    public Map<String, Object> getDashboardData(String userEmail) {
-        AdminUser admin = adminUserRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("Admin user not found"));
+    // FIX: Changed parameter from String (email) to AdminUser (object)
+    public Map<String, Object> getDashboardData(AdminUser admin) {
+
+        // We no longer look up by email here, because the Controller
+        // has already constructed the AdminUser object (supporting both DB users and Master Keys).
 
         Map<String, Object> dashboardData = new HashMap<>();
 
@@ -48,26 +50,33 @@ public class AdminService {
 
         // Pending items based on role
         int pendingCount = 0;
-        switch (admin.getRole()) {
-            case DEAN:
-                pendingCount += registrationRepository.findByStatusAndApplicantFaculty(
-                        SocietyRegistration.ApprovalStage.PENDING_DEAN, admin.getFaculty()).size();
-                // Use RenewalStatus for renewals
-                pendingCount += renewalRepository.findByStatusAndApplicantFaculty(
-                        SocietyRenewal.RenewalStatus.PENDING_DEAN, admin.getFaculty()).size();
-                break;
-            case ASSISTANT_REGISTRAR:
-                pendingCount += registrationRepository.findByStatus(SocietyRegistration.ApprovalStage.PENDING_AR).size();
-                // Use RenewalStatus for renewals
-                pendingCount += renewalRepository.findByStatus(SocietyRenewal.RenewalStatus.PENDING_AR).size();
-                pendingCount += eventPermissionRepository.findByStatus(EventPermission.EventStatus.PENDING_AR).size();
-                break;
-            case VICE_CHANCELLOR:
-                pendingCount += registrationRepository.findByStatus(SocietyRegistration.ApprovalStage.PENDING_VC).size();
-                // Use RenewalStatus for renewals
-                pendingCount += renewalRepository.findByStatus(SocietyRenewal.RenewalStatus.PENDING_VC).size();
-                pendingCount += eventPermissionRepository.findByStatus(EventPermission.EventStatus.PENDING_VC).size();
-                break;
+
+        if (admin.getRole() != null) {
+            switch (admin.getRole()) {
+                case DEAN:
+                    // Use safe checks for faculty
+                    String faculty = admin.getFaculty() != null ? admin.getFaculty() : "";
+                    pendingCount += registrationRepository.findByStatusAndApplicantFaculty(
+                            SocietyRegistration.ApprovalStage.PENDING_DEAN, faculty).size();
+                    pendingCount += renewalRepository.findByStatusAndApplicantFaculty(
+                            SocietyRenewal.RenewalStatus.PENDING_DEAN, faculty).size();
+                    break;
+                case ASSISTANT_REGISTRAR:
+                    pendingCount += registrationRepository.findByStatus(SocietyRegistration.ApprovalStage.PENDING_AR).size();
+                    pendingCount += renewalRepository.findByStatus(SocietyRenewal.RenewalStatus.PENDING_AR).size();
+                    pendingCount += eventPermissionRepository.findByStatus(EventPermission.EventStatus.PENDING_AR).size();
+                    break;
+                case VICE_CHANCELLOR:
+                    pendingCount += registrationRepository.findByStatus(SocietyRegistration.ApprovalStage.PENDING_VC).size();
+                    pendingCount += renewalRepository.findByStatus(SocietyRenewal.RenewalStatus.PENDING_VC).size();
+                    pendingCount += eventPermissionRepository.findByStatus(EventPermission.EventStatus.PENDING_VC).size();
+                    break;
+                case STUDENT_SERVICE:
+                    // Student Service generally monitors all, but doesn't have a specific "Approval Queue"
+                    // If they do, add the logic here. For now, we set to 0 or count total pending.
+                    pendingCount = 0;
+                    break;
+            }
         }
 
         dashboardData.put("pendingApprovals", pendingCount);
