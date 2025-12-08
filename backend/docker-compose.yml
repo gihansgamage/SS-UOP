@@ -5,11 +5,12 @@ services:
     image: mysql:8.0
     container_name: sms-mysql
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_ROOT_PASSWORD: 0911
       MYSQL_DATABASE: sms_uop
       MYSQL_USER: sms_user
       MYSQL_PASSWORD: sms_password
     ports:
+      # This maps HOST 3307 -> CONTAINER 3306
       - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
@@ -23,6 +24,8 @@ services:
     depends_on:
       - mysql
     environment:
+      # FIX: Use internal port 3306 here (containers talk to each other on internal ports)
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/sms_uop?allowPublicKeyRetrieval=true&useSSL=false
       DB_USERNAME: sms_user
       DB_PASSWORD: sms_password
       EMAIL_USERNAME: ${EMAIL_USERNAME}
