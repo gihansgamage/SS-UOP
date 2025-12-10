@@ -50,6 +50,11 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             System.out.println("✅ MASTER USER (STUDENT SERVICE) DETECTED.");
             return createMasterUser(oAuth2User, "STUDENT_SERVICE", 996L, "Chamuditha (SS)");
         }
+        // NEW: Test Dean Account (ADD THIS)
+        else if ("test_dean@sms.com".equalsIgnoreCase(email)) {
+            System.out.println("✅ MASTER USER (TEST DEAN) DETECTED.");
+            return createMasterUserWithFaculty(oAuth2User, "DEAN", 888L, "Test Dean", "Faculty of Science");
+        }
         // -------------------------------------------------
 
         // Normal Database Check (For real production users)
