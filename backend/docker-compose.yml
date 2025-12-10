@@ -25,7 +25,7 @@ services:
       - mysql
     environment:
       # FIX: Use internal port 3306 here (containers talk to each other on internal ports)
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/sms_uop?allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3307/sms_uop?allowPublicKeyRetrieval=true&useSSL=false
       DB_USERNAME: sms_user
       DB_PASSWORD: sms_password
       EMAIL_USERNAME: ${EMAIL_USERNAME}
