@@ -36,10 +36,9 @@ public class ApprovalService {
     }
 
     public List<ApprovalDto> getDeanPendingApprovals(String faculty) {
-        List<ApprovalDto> dtos = new ArrayList<>();
         List<SocietyRegistration> registrations = registrationRepository.findByStatusAndApplicantFaculty(
                 SocietyRegistration.ApprovalStage.PENDING_DEAN, faculty);
-        dtos.addAll(registrations.stream().map(this::mapToDto).collect(Collectors.toList()));
+        List<ApprovalDto> dtos = new ArrayList<>(registrations.stream().map(this::mapToDto).collect(Collectors.toList()));
 
         List<SocietyRenewal> renewals = renewalRepository.findByStatusAndApplicantFaculty(
                 SocietyRenewal.RenewalStatus.PENDING_DEAN, faculty);
